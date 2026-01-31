@@ -18,7 +18,7 @@ Quick Start:
     >>> distances = lg.dijkstra(G, 'A')
     >>> print(distances)
 """
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __author__ = "Can AKYILDIRIM"
 
 # Import main algorithms for easy access
