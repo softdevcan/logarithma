@@ -23,12 +23,20 @@ __author__ = "Can AKYILDIRIM"
 
 # Import main algorithms for easy access
 from .algorithms import dijkstra, dijkstra_with_path
+from .algorithms.traversal import bfs, bfs_path, dfs, dfs_path, detect_cycle
 
 # Package metadata
 __all__ = [
+    # Shortest Path
     'dijkstra',
     'dijkstra_with_path',
-    '__version__'
+    # Traversal
+    'bfs',
+    'bfs_path',
+    'dfs',
+    'dfs_path',
+    'detect_cycle',
+    # Metadata
+    '__version__',
+    '__author__'
 ]
-
-print("LOGARITHMA library imported successfully!")
