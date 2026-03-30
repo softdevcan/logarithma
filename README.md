@@ -2,7 +2,7 @@
 
 > High-performance graph algorithms for Python — from classic Dijkstra to cutting-edge research.
 
-[![PyPI version](https://badge.fury.io/py/logarithma.svg)](https://badge.fury.io/py/logarithma)
+[![PyPI version](https://img.shields.io/pypi/v/logarithma.svg)](https://pypi.org/project/logarithma/)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
