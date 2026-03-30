@@ -32,7 +32,7 @@ Quick Start:
     >>> result = lg.bidirectional_dijkstra(G, 'A', 'C')
 """
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 __author__ = "Can AKYILDIRIM"
 
 from .algorithms import (
