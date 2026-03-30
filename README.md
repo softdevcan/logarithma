@@ -1,178 +1,155 @@
-# 📐 Logarithma
+# Logarithma
 
-> *Next-generation graph algorithms for computational optimization*
+> High-performance graph algorithms for Python — from classic Dijkstra to cutting-edge research.
 
 [![PyPI version](https://badge.fury.io/py/logarithma.svg)](https://badge.fury.io/py/logarithma)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Logarithma** is a high-performance Python library for graph algorithms. Our goal is to implement the groundbreaking **O(m + n log log n)** shortest path algorithm (Thorup's SSSP), breaking the classical Dijkstra's O(m + n log n) sorting barrier.
+Logarithma is a Python library for graph algorithms built on [NetworkX](https://networkx.org/). It provides clean, well-tested implementations of shortest path and traversal algorithms, with the primary research goal of implementing the **Breaking the Sorting Barrier** SSSP algorithm (Duan et al., 2025).
 
-## ✨ Features
-
-### Current (v0.1.0)
-- ✅ **Dijkstra's Algorithm**: Classic shortest path implementation
-- ✅ **Path Reconstruction**: Get both distances and paths
-- ✅ **NetworkX Integration**: Seamless integration with NetworkX graphs
-
-### Coming Soon (v0.2.0 - v0.5.0)
-- 🔄 **A* Algorithm**: Heuristic-based pathfinding
-- 🔄 **BFS/DFS**: Graph traversal algorithms
-- 🔄 **Bellman-Ford**: Support for negative weights
-- 🔄 **MST Algorithms**: Kruskal and Prim
-- 🔄 **Visualization**: Interactive graph visualization
-- 🔄 **Utils**: Graph generators, validators, converters
-- 🎯 **Thorup SSSP**: O(m + n log log n) - Breaking the sorting barrier!
-
-## 🚀 Installation
+## Installation
 
 ```bash
 pip install logarithma
 ```
 
-## 🎯 Quick Start
+With visualization support:
 
-### Basic Dijkstra Usage
+```bash
+pip install logarithma[viz]
+```
+
+**Requirements:** Python 3.8+, NumPy ≥ 1.20, NetworkX ≥ 2.6
+
+## Quick Start
 
 ```python
 import logarithma as lg
 import networkx as nx
 
-# Create a graph
 G = nx.Graph()
 G.add_edge('A', 'B', weight=4)
 G.add_edge('A', 'C', weight=2)
 G.add_edge('B', 'C', weight=1)
-G.add_edge('B', 'D', weight=5)
 G.add_edge('C', 'D', weight=8)
 
-# Find shortest distances from A
+# Shortest distances from A
 distances = lg.dijkstra(G, 'A')
-print(distances)
-# Output: {'A': 0, 'C': 2, 'B': 3, 'D': 8}
+# {'A': 0, 'C': 2, 'B': 3, 'D': 10}
 
-# Get shortest path to a specific node
+# Shortest path to D
 result = lg.dijkstra_with_path(G, 'A', 'D')
-print(f"Distance to D: {result['distances']['D']}")
-print(f"Path to D: {result['paths']['D']}")
-# Output: Distance to D: 8
-#         Path to D: ['A', 'C', 'B', 'D']
+print(result['path'])    # ['A', 'C', 'D']
+print(result['distance']) # 10
 ```
 
-## 📚 Documentation
+## Algorithms
 
-- **[Development Plan](DEVELOPMENT.md)**: Comprehensive roadmap and vision
-- **[Algorithm Roadmap](docs/ALGORITHM_ROADMAP.md)**: Detailed algorithm specifications
-- **[Project Structure](docs/PROJECT_STRUCTURE.md)**: Codebase organization
-- **[Breaking Barrier Research](docs/breaking_barrier_research.md)**: 2025 paper analysis and implementation plan
-- **[Paper Summary](docs/MAKALE_OZET.md)**: Guide to studying the 2025 paper
+### Shortest Path
 
-## 🗺️ Roadmap
+**Dijkstra** — `O(E + V log V)`, non-negative weights, directed & undirected
 
-### Phase 1: Core Algorithms (v0.2.0) - March 2026
-- A* pathfinding algorithm
-- BFS/DFS traversal
-- Bellman-Ford for negative weights
-- Utils module (generators, validators)
-- Basic visualization
+```python
+distances = lg.dijkstra(G, source='A')
+result = lg.dijkstra_with_path(G, source='A', target='D')
+```
 
-### Phase 2: Advanced Algorithms (v0.3.0-v0.4.0) - April-May 2026
-- Minimum Spanning Tree (Kruskal, Prim)
-- Network Flow algorithms
-- All-pairs shortest path
-- Graph properties (SCC, topological sort)
+**A\* (A-Star)** — heuristic-guided, optimal with admissible heuristic
 
-### Phase 3: Breaking the Sorting Barrier (v0.5.0) - June-July 2026 🎯
-- **Breaking the Sorting Barrier** algorithm (Duan et al., 2025)
-- Advanced data structures for directed graphs
-- Surpassing Dijkstra's O(m + n log n) bound
-- Implementation of cutting-edge 2025 research!
+```python
+from logarithma import astar, euclidean_heuristic, manhattan_heuristic, haversine_heuristic
 
-### Phase 4: Optimization (v0.6.0) - August 2026
-- Cython optimizations
-- Parallel processing
-- Memory optimizations
+pos = {'A': (0, 0), 'B': (3, 0), 'C': (3, 4)}
+result = astar(G, 'A', 'C', heuristic=euclidean_heuristic(pos))
+print(result['distance'])  # 5
+print(result['path'])      # ['A', 'B', 'C']
+```
 
-### Phase 5: Applications (v0.7.0+) - September 2026
-- Domain-specific modules (logistics, finance, social networks)
-- Real-world examples
-- Production-ready v1.0.0
+**Bellman-Ford** — `O(V·E)`, supports negative-weight edges and cycle detection
 
-## 🎓 Algorithm Complexity Comparison
+```python
+from logarithma import bellman_ford, bellman_ford_path, NegativeCycleError
 
-| Algorithm | Time Complexity | Space | Use Case |
-|-----------|----------------|-------|----------|
-| Dijkstra | O(m + n log n) | O(n) | General SSSP, non-negative weights |
-| A* | O(b^d)* | O(n) | Pathfinding with heuristics |
-| Bellman-Ford | O(mn) | O(n) | Negative weights, cycle detection |
-| **Breaking Barrier (2025)** | **[Makaleye göre]** | **O(n)** | **Directed graphs, breaks sorting barrier** |
+DG = nx.DiGraph()
+DG.add_edge('A', 'B', weight=4)
+DG.add_edge('B', 'C', weight=-3)
 
-*Practical performance is much better with good heuristics
+result = bellman_ford(DG, 'A')
+# distances: {'A': 0, 'B': 4, 'C': 1}
 
-## 💡 Use Cases
+try:
+    bellman_ford(graph_with_cycle, 'A')
+except NegativeCycleError as e:
+    print(e.cycle)  # reconstructed cycle nodes
+```
 
-### Logistics & Transportation
-- Route optimization
-- Delivery planning
-- Traffic network analysis
+**Bidirectional Dijkstra** — simultaneous forward/backward search, ~2× faster for point-to-point
 
-### Social Networks
-- Influence analysis
-- Community detection
-- Recommendation systems
+```python
+result = lg.bidirectional_dijkstra(G, source='A', target='D')
+print(result['distance'])
+print(result['path'])
+```
 
-### Finance
-- Arbitrage detection
-- Risk analysis
-- Portfolio optimization
+### Graph Traversal
 
-### Telecommunications
-- Network routing
-- Bandwidth optimization
-- Fault tolerance
+**BFS** and **DFS** with path reconstruction and cycle detection:
 
-## 🤝 Contributing
+```python
+# BFS — shortest path by edge count
+distances = lg.bfs(G, source='A')
+result = lg.bfs_path(G, source='A', target='D')
 
-We welcome contributions! See [DEVELOPMENT.md](DEVELOPMENT.md) for:
-- Development setup
-- Code style guidelines
-- Testing requirements
-- Contribution workflow
+# DFS — traversal order, path finding, cycle detection
+visited = lg.dfs(G, source='A')                    # recursive (default)
+visited = lg.dfs(G, source='A', mode='iterative')
+path = lg.dfs_path(G, source='A', target='D')
 
-## 📊 Performance
+has_cycle, cycle = lg.detect_cycle(G)
+```
 
-Logarithma is designed for both correctness and performance:
+### Utils
 
-- ✅ **Correctness**: Rigorous testing against known algorithms
-- ⚡ **Speed**: Optimized implementations with Cython
-- 📈 **Scalability**: Efficient for graphs with millions of nodes
-- 💾 **Memory**: O(n) space complexity for most algorithms
+34 utility functions across 4 categories:
 
-## 🔬 Research
+```python
+from logarithma.utils import (
+    # Generators
+    generate_random_graph, generate_grid_graph, generate_scale_free_graph,
+    # Validators
+    is_connected, is_dag, has_negative_weights, validate_graph,
+    # Converters
+    to_adjacency_matrix, from_edge_list, to_graphml,
+    # Metrics
+    graph_density, diameter, graph_summary,
+)
 
-Logarithma is built on cutting-edge research:
+G = generate_random_graph(n=100, edge_prob=0.1, weighted=True, seed=42)
+print(graph_summary(G))
+# {'nodes': 100, 'edges': 491, 'density': 0.099, 'avg_degree': 9.82, ...}
+```
 
-- **Duan, R., Mao, J., Mao, X., Shu, X., Yin, L. (2025)**: "Breaking the Sorting Barrier for Directed Single-Source Shortest Paths" - arXiv:2504.17033v2 🎯 **PRIMARY FOCUS**
-- **Dijkstra, E. W. (1959)**: "A note on two problems in connexion with graphs"
-- **Hart, P. E., et al. (1968)**: "A Formal Basis for the Heuristic Determination of Minimum Cost Paths"
-- **Thorup, M. (2004)**: "Integer priority queues with decrease key in constant time" (Related work)
+## Complexity Reference
 
-## 📄 License
+| Algorithm | Time | Negative Weights |
+|-----------|------|-----------------|
+| Dijkstra | `O(E + V log V)` | ✗ |
+| A\* | `O(b^d)` practical | ✗ |
+| Bellman-Ford | `O(V · E)` | ✓ |
+| Bidirectional Dijkstra | `O(E + V log V)` ~2× faster | ✗ |
+| BFS / DFS | `O(V + E)` | — |
 
-MIT License - see [LICENSE](LICENSE) file for details.
+## Documentation
 
-## 📧 Contact
+Full documentation and examples: **[softdevcan.github.io/logarithma](https://softdevcan.github.io/logarithma/)**
 
-- **Author**: Can AKYILDIRIM
-- **Email**: akyildirimcan@gmail.com
-- **GitHub**: [softdevcan/logarithma](https://github.com/softdevcan/logarithma)
+## Research
 
-## 🌟 Star History
+Logarithma's primary goal is implementing the **Breaking the Sorting Barrier for Directed Single-Source Shortest Paths** (Duan, Mao, Mao, Shu, Yin — arXiv:2504.17033v2, 2025), which surpasses the classical `O(m + n log n)` sorting barrier for directed SSSP.
 
-If you find Logarithma useful, please consider giving it a star on GitHub!
+## License
 
----
+MIT — see [LICENSE](LICENSE) for details.
 
-**Status**: 🚀 Active Development  
-**Current Version**: 0.1.0  
-**Next Release**: 0.2.0 (March 2026)
+**Author:** Can AKYILDIRIM · [GitHub](https://github.com/softdevcan/logarithma) · [PyPI](https://pypi.org/project/logarithma/)
