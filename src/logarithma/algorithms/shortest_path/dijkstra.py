@@ -204,12 +204,11 @@ def dijkstra_with_path(
             current = previous[current]
         return path[::-1]
 
-    # Build paths dictionary
+    # Build paths dictionary — all nodes included; unreachable nodes get []
     if target:
         paths = {target: get_path(target)}
     else:
-        paths = {node: get_path(node) for node in graph.nodes()
-                 if distances[node] != float('inf')}
+        paths = {node: get_path(node) for node in graph.nodes()}
 
     return {
         'distances': distances,

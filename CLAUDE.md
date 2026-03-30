@@ -14,28 +14,25 @@
 
 ## Mevcut Durum (Mart 2026)
 
-### Versiyon: 0.2.0
-
-**⚠️ Dikkat**: README.md hâlâ "Current Version: 0.1.0" yazıyor — güncel değil. Gerçek versiyon `src/logarithma/__init__.py` ve `pyproject.toml`'da 0.2.0.
+### Versiyon: 0.3.0
 
 ### Implement Edilmiş Özellikler
 
 | Modül | Fonksiyonlar | Durum |
 |-------|-------------|-------|
-| `dijkstra` | `dijkstra()`, `dijkstra_with_path()` | ✅ Tamamlandı |
-| `bfs` | `bfs()`, `bfs_path()` | ✅ Tamamlandı |
-| `dfs` | `dfs()`, `dfs_path()`, `detect_cycle()` | ✅ Tamamlandı |
-| `utils.generators` | 9 fonksiyon (random, grid, complete, tree...) | ✅ Tamamlandı |
-| `utils.validators` | 8 fonksiyon (connected, DAG, negative weights...) | ✅ Tamamlandı |
-| `utils.converters` | 8 fonksiyon (adj matrix, edge list, graphml...) | ✅ Tamamlandı |
-| `utils.metrics` | 9 fonksiyon (density, diameter, centrality...) | ✅ Tamamlandı |
-| `visualization` | 10 fonksiyon (plot_graph, plot_shortest_path...) | ⚠️ Dosyalar var, git'e eklenmemiş |
+| `dijkstra` | `dijkstra()`, `dijkstra_with_path()` | ✅ v0.2.0 |
+| `bfs` | `bfs()`, `bfs_path()` | ✅ v0.2.0 |
+| `dfs` | `dfs()`, `dfs_path()`, `detect_cycle()` | ✅ v0.2.0 |
+| `utils` | 34 fonksiyon (generators/validators/converters/metrics) | ✅ v0.2.0 |
+| `visualization` | 10 fonksiyon (plot_graph, plot_shortest_path...) | ✅ v0.2.0 |
+| `astar` | `astar()`, `astar_with_stats()`, 3 heuristic | ✅ v0.3.0 |
+| `bellman_ford` | `bellman_ford()`, `bellman_ford_path()`, `NegativeCycleError` | ✅ v0.3.0 |
+| `bidirectional_dijkstra` | `bidirectional_dijkstra()` | ✅ v0.3.0 |
+
+**Unit test toplamı: 113**
 
 ### Henüz Yapılmamışlar (Roadmap)
 
-- ❌ A* algoritması
-- ❌ Bellman-Ford
-- ❌ Bidirectional Dijkstra
 - ❌ Floyd-Warshall / Johnson's
 - ❌ Kruskal / Prim MST
 - ❌ Tarjan SCC

@@ -5,6 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-03-30
+
+### Added
+- **A\* Algorithm** (`astar`, `astar_with_stats`)
+  - Heuristic-guided shortest path — optimal with admissible heuristic
+  - Three built-in heuristics: `euclidean_heuristic`, `manhattan_heuristic`, `haversine_heuristic`
+  - `zero_heuristic` degenerates A* to Dijkstra (baseline comparison)
+  - `astar_with_stats` returns diagnostic node-expansion counts
+  - Supports directed and undirected graphs
+  - 31 unit tests
+
+- **Bellman-Ford Algorithm** (`bellman_ford`, `bellman_ford_path`)
+  - Supports directed graphs with negative-weight edges
+  - `NegativeCycleError` (ValueError subclass) raised with reconstructed cycle
+  - Early-termination optimisation when no relaxation occurs in a pass
+  - `bellman_ford_path` convenience wrapper with path reconstruction
+  - Documents the undirected + negative-weight → always 2-cycle constraint
+  - 32 unit tests
+
+- **Bidirectional Dijkstra** (`bidirectional_dijkstra`)
+  - Simultaneous forward/backward search for point-to-point queries
+  - Backward search on DiGraph follows reversed edges (predecessors)
+  - ~2× fewer node expansions vs standard Dijkstra (Pohl 1971 criterion)
+  - Supports directed and undirected graphs, non-negative weights
+  - 23 unit tests
+
+### Fixed
+- `dijkstra_with_path`: unreachable nodes now included in `paths` dict with
+  value `[]` instead of being silently omitted
+
+### Updated
+- Public API (`__init__.py`): all new algorithms exported at top level
+- Version bumped to `0.3.0`
+- `ALGORITHM_ROADMAP.md`, `DEVELOPMENT.md`, `CLAUDE.md` updated to reflect
+  v0.3.0 completions
+
 ## [0.2.0] - 2026-01-31
 
 ### Added
