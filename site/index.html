@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Logarithma — Graph Algorithms Library</title>
+  <meta name="description" content="High-performance Python graph algorithms library. Dijkstra, A*, Bellman-Ford, Bidirectional Dijkstra, BFS, DFS and more." />
+
+  <!-- Prism.js syntax highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+
+  <style>
+    :root {
+      --bg:         #0d1117;
+      --surface:    #161b22;
+      --surface2:   #21262d;
+      --border:     #30363d;
+      --accent:     #58a6ff;
+      --accent2:    #3fb950;
+      --accent3:    #d29922;
+      --danger:     #f85149;
+      --text:       #e6edf3;
+      --muted:      #8b949e;
+      --radius:     8px;
+      --nav-h:      60px;
+      --sidebar-w:  240px;
+      --max-w:      860px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; font-size: 16px; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    /* ── NAV ─────────────────────────────────────────────────── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      height: var(--nav-h);
+      background: rgba(13,17,23,.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem;
+    }
+    .nav-brand {
+      display: flex; align-items: center; gap: .6rem;
+      font-weight: 700; font-size: 1.15rem; color: var(--text);
+      text-decoration: none;
+    }
+    .nav-brand .logo {
+      width: 28px; height: 28px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .8rem; font-weight: 900; color: #fff;
+    }
+    .nav-badge {
+      font-size: .72rem; padding: 2px 8px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 20px; color: var(--accent); font-weight: 600;
+    }
+    .nav-links { display: flex; gap: 1.5rem; }
+    .nav-links a {
+      color: var(--muted); text-decoration: none; font-size: .9rem;
+      transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .btn-github {
+      display: flex; align-items: center; gap: .4rem;
+      padding: 6px 14px; border-radius: var(--radius);
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); text-decoration: none; font-size: .85rem;
+      transition: border-color .2s, background .2s;
+    }
+    .btn-github:hover { border-color: var(--accent); background: var(--surface); }
+
+    /* ── LAYOUT ──────────────────────────────────────────────── */
+    .page-wrap {
+      display: flex;
+      padding-top: var(--nav-h);
+      min-height: 100vh;
+    }
+
+    /* ── SIDEBAR ─────────────────────────────────────────────── */
+    aside {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      position: sticky;
+      top: var(--nav-h);
+      height: calc(100vh - var(--nav-h));
+      overflow-y: auto;
+      padding: 1.5rem 1rem;
+      border-right: 1px solid var(--border);
+      font-size: .85rem;
+    }
+    aside::-webkit-scrollbar { width: 4px; }
+    aside::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    .sidebar-group { margin-bottom: 1.4rem; }
+    .sidebar-label {
+      text-transform: uppercase; letter-spacing: .08em;
+      font-size: .7rem; font-weight: 700; color: var(--muted);
+      margin-bottom: .5rem; padding: 0 .4rem;
+    }
+    .sidebar-group a {
+      display: block; padding: .3rem .5rem; border-radius: 5px;
+      color: var(--muted); text-decoration: none; transition: color .15s, background .15s;
+    }
+    .sidebar-group a:hover,
+    .sidebar-group a.active { color: var(--accent); background: rgba(88,166,255,.08); }
+
+    /* ── MAIN ────────────────────────────────────────────────── */
+    main {
+      flex: 1;
+      max-width: var(--max-w);
+      padding: 3rem 2.5rem 6rem;
+      margin: 0 auto;
+      min-width: 0;
+    }
+
+    /* ── HERO ────────────────────────────────────────────────── */
+    .hero { padding: 3rem 0 2.5rem; }
+    .hero-eyebrow {
+      font-size: .8rem; font-weight: 600;
+      color: var(--accent2); letter-spacing: .1em;
+      text-transform: uppercase; margin-bottom: .8rem;
+    }
+    .hero h1 {
+      font-size: 2.8rem; font-weight: 800; line-height: 1.15;
+      background: linear-gradient(120deg, #e6edf3 30%, var(--accent));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1rem;
+    }
+    .hero p {
+      font-size: 1.1rem; color: var(--muted); max-width: 580px; margin-bottom: 2rem;
+    }
+    .hero-badges { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 2rem; }
+    .badge {
+      display: inline-flex; align-items: center; gap: .35rem;
+      padding: 4px 12px; border-radius: 20px; font-size: .78rem; font-weight: 600;
+      border: 1px solid var(--border);
+    }
+    .badge-blue  { color: var(--accent);  background: rgba(88,166,255,.1);  border-color: rgba(88,166,255,.3); }
+    .badge-green { color: var(--accent2); background: rgba(63,185,80,.1);   border-color: rgba(63,185,80,.3); }
+    .badge-yellow{ color: var(--accent3); background: rgba(210,153,34,.1);  border-color: rgba(210,153,34,.3); }
+    .hero-actions { display: flex; gap: .8rem; flex-wrap: wrap; }
+    .btn {
+      padding: 10px 20px; border-radius: var(--radius);
+      font-size: .9rem; font-weight: 600; text-decoration: none;
+      transition: opacity .2s, transform .15s;
+      display: inline-block;
+    }
+    .btn:hover { opacity: .88; transform: translateY(-1px); }
+    .btn-primary { background: var(--accent); color: #0d1117; }
+    .btn-secondary {
+      background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+    }
+
+    /* ── SECTIONS ────────────────────────────────────────────── */
+    section { margin-bottom: 4rem; scroll-margin-top: calc(var(--nav-h) + 1rem); }
+    h2 {
+      font-size: 1.6rem; font-weight: 700; margin-bottom: 1rem;
+      padding-bottom: .5rem; border-bottom: 1px solid var(--border);
+    }
+    h3 { font-size: 1.1rem; font-weight: 700; margin: 1.8rem 0 .6rem; color: var(--text); }
+    h4 { font-size: .95rem; font-weight: 600; margin: 1.2rem 0 .4rem; color: var(--muted); }
+    p { margin-bottom: .8rem; color: var(--muted); }
+    p strong { color: var(--text); }
+    a { color: var(--accent); }
+    ul { padding-left: 1.4rem; color: var(--muted); }
+    li { margin-bottom: .25rem; }
+    li strong { color: var(--text); }
+    code {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: .85em;
+      background: var(--surface2); border: 1px solid var(--border);
+      padding: 1px 6px; border-radius: 4px; color: var(--accent);
+    }
+
+    /* ── CODE BLOCKS ─────────────────────────────────────────── */
+    .code-block { margin: 1.2rem 0; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); }
+    .code-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: .5rem 1rem; background: var(--surface2);
+      border-bottom: 1px solid var(--border); font-size: .78rem; color: var(--muted);
+    }
+    .code-lang { color: var(--accent); font-weight: 600; }
+    .copy-btn {
+      background: none; border: 1px solid var(--border); color: var(--muted);
+      padding: 2px 10px; border-radius: 5px; cursor: pointer; font-size: .75rem;
+      transition: color .2s, border-color .2s;
+    }
+    .copy-btn:hover { color: var(--text); border-color: var(--accent); }
+    pre[class*="language-"] {
+      margin: 0 !important;
+      border-radius: 0 !important;
+      background: #161b22 !important;
+      font-size: .83rem !important;
+    }
+
+    /* ── INSTALL BOX ─────────────────────────────────────────── */
+    .install-box {
+      display: flex; align-items: center; gap: 1rem;
+      padding: 1rem 1.4rem; background: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      font-family: monospace; font-size: 1rem; color: var(--accent2);
+      margin: 1.2rem 0;
+    }
+    .install-box .prompt { color: var(--muted); user-select: none; }
+
+    /* ── ALGO CARDS ──────────────────────────────────────────── */
+    .algo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.2rem 0; }
+    .algo-card {
+      padding: 1.1rem 1.2rem;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); transition: border-color .2s;
+    }
+    .algo-card:hover { border-color: var(--accent); }
+    .algo-card-name { font-weight: 700; font-size: .95rem; margin-bottom: .3rem; }
+    .algo-card-complexity {
+      font-family: monospace; font-size: .78rem;
+      color: var(--accent3); margin-bottom: .5rem;
+    }
+    .algo-card-desc { font-size: .82rem; color: var(--muted); }
+
+    /* ── CALLOUT ─────────────────────────────────────────────── */
+    .callout {
+      display: flex; gap: .8rem;
+      padding: 1rem 1.2rem; border-radius: var(--radius);
+      margin: 1.2rem 0; font-size: .88rem;
+    }
+    .callout-info  { background: rgba(88,166,255,.08);  border: 1px solid rgba(88,166,255,.25); }
+    .callout-warn  { background: rgba(210,153,34,.08);  border: 1px solid rgba(210,153,34,.25); }
+    .callout-danger{ background: rgba(248,81,73,.08);   border: 1px solid rgba(248,81,73,.25);  }
+    .callout-icon  { flex-shrink: 0; font-size: 1rem; margin-top: .05rem; }
+    .callout-body  { color: var(--muted); }
+    .callout-body strong { color: var(--text); }
+
+    /* ── TABLE ───────────────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; margin: 1.2rem 0; }
+    table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+    th { text-align: left; padding: .6rem .9rem; color: var(--muted); font-weight: 600; border-bottom: 2px solid var(--border); }
+    td { padding: .55rem .9rem; border-bottom: 1px solid var(--border); color: var(--muted); }
+    td strong, td code { color: var(--text); }
+    tr:hover td { background: rgba(255,255,255,.02); }
+
+    /* ── VERSION TIMELINE ────────────────────────────────────── */
+    .timeline { margin: 1.2rem 0; }
+    .timeline-item { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
+    .timeline-dot-col { display: flex; flex-direction: column; align-items: center; }
+    .timeline-dot {
+      width: 12px; height: 12px; border-radius: 50%;
+      background: var(--border); flex-shrink: 0; margin-top: .35rem;
+    }
+    .timeline-dot.done  { background: var(--accent2); }
+    .timeline-dot.current { background: var(--accent); box-shadow: 0 0 0 4px rgba(88,166,255,.2); }
+    .timeline-dot.future { background: var(--border); }
+    .timeline-line { width: 1px; background: var(--border); flex: 1; margin-top: 4px; }
+    .timeline-content { padding-bottom: .5rem; }
+    .timeline-version { font-weight: 700; font-size: .9rem; margin-bottom: .2rem; }
+    .timeline-date { font-size: .75rem; color: var(--muted); margin-bottom: .4rem; }
+    .timeline-items { font-size: .83rem; color: var(--muted); }
+    .timeline-items li { margin-bottom: .15rem; }
+
+    /* ── FOOTER ──────────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem; text-align: center;
+      font-size: .82rem; color: var(--muted);
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+
+    /* ── RESPONSIVE ──────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      aside { display: none; }
+      main { padding: 2rem 1.2rem 4rem; }
+      .hero h1 { font-size: 2rem; }
+      .algo-grid { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── NAVBAR ─────────────────────────────────────────────────── -->
+<nav>
+  <a class="nav-brand" href="#">
+    <div class="logo">λ</div>
+    Logarithma
+    <span class="nav-badge">v0.3.0</span>
+  </a>
+  <div class="nav-links">
+    <a href="#installation">Installation</a>
+    <a href="#quickstart">Quick Start</a>
+    <a href="#algorithms">Algorithms</a>
+    <a href="#changelog">Changelog</a>
+  </div>
+  <a class="btn-github" href="https://github.com/softdevcan/logarithma" target="_blank">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+    </svg>
+    GitHub
+  </a>
+</nav>
+
+<!-- ── PAGE WRAP ──────────────────────────────────────────────── -->
+<div class="page-wrap">
+
+  <!-- ── SIDEBAR ─────────────────────────────────────────────── -->
+  <aside>
+    <div class="sidebar-group">
+      <div class="sidebar-label">Getting Started</div>
+      <a href="#intro">Introduction</a>
+      <a href="#installation">Installation</a>
+      <a href="#quickstart">Quick Start</a>
+    </div>
+    <div class="sidebar-group">
+      <div class="sidebar-label">Shortest Path</div>
+      <a href="#dijkstra">Dijkstra</a>
+      <a href="#astar">A*</a>
+      <a href="#bellman-ford">Bellman-Ford</a>
+      <a href="#bidir">Bidirectional Dijkstra</a>
+    </div>
+    <div class="sidebar-group">
+      <div class="sidebar-label">Graph Traversal</div>
+      <a href="#bfs">BFS</a>
+      <a href="#dfs">DFS</a>
+    </div>
+    <div class="sidebar-group">
+      <div class="sidebar-label">Utilities</div>
+      <a href="#utils">Utils Module</a>
+    </div>
+    <div class="sidebar-group">
+      <div class="sidebar-label">Project</div>
+      <a href="#complexity">Complexity Table</a>
+      <a href="#changelog">Changelog</a>
+      <a href="#roadmap">Roadmap</a>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ────────────────────────────────────────────────── -->
+  <main>
+
+    <!-- HERO -->
+    <section class="hero" id="intro">
+      <div class="hero-eyebrow">Python Graph Algorithms Library</div>
+      <h1>Logarithma</h1>
+      <p>
+        High-performance graph algorithms in Python — from classic Dijkstra to the
+        cutting-edge <strong>Breaking the Sorting Barrier</strong> SSSP (Duan et al., 2025).
+        Built on NetworkX. Production-ready, fully typed, comprehensively tested.
+      </p>
+      <div class="hero-badges">
+        <span class="badge badge-blue">v0.3.0</span>
+        <span class="badge badge-green">Python 3.8+</span>
+        <span class="badge badge-yellow">MIT License</span>
+        <span class="badge badge-blue">113 Tests</span>
+        <span class="badge badge-green">Active Development</span>
+      </div>
+      <div class="hero-actions">
+        <a href="#installation" class="btn btn-primary">Get Started</a>
+        <a href="https://github.com/softdevcan/logarithma" class="btn btn-secondary" target="_blank">View on GitHub</a>
+      </div>
+    </section>
+
+    <!-- INSTALLATION -->
+    <section id="installation">
+      <h2>Installation</h2>
+      <p>Install the latest stable version from PyPI:</p>
+      <div class="install-box">
+        <span class="prompt">$</span>
+        pip install logarithma
+      </div>
+      <p>To include visualization support (Matplotlib + Plotly):</p>
+      <div class="install-box">
+        <span class="prompt">$</span>
+        pip install logarithma[viz]
+      </div>
+      <p><strong>Requirements:</strong> Python 3.8+, NumPy ≥ 1.20, NetworkX ≥ 2.6</p>
+
+      <h3>Install from Source</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">bash</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="language-bash">git clone https://github.com/softdevcan/logarithma.git
+cd logarithma
+pip install -e ".[dev,viz]"</code></pre>
+      </div>
+    </section>
+
+    <!-- QUICK START -->
+    <section id="quickstart">
+      <h2>Quick Start</h2>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">python</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="language-python">import logarithma as lg
+import networkx as nx
+
+# Build a weighted graph
+G = nx.Graph()
+G.add_edge('A', 'B', weight=4)
+G.add_edge('A', 'C', weight=2)
+G.add_edge('B', 'C', weight=1)
+G.add_edge('B', 'D', weight=5)
+G.add_edge('C', 'D', weight=8)
+
+# Dijkstra — shortest distances from A
+distances = lg.dijkstra(G, 'A')
+print(distances)
+# {'A': 0, 'B': 3, 'C': 2, 'D': 8}
+
+# A* — point-to-point with heuristic
+result = lg.astar(G, 'A', 'D')
+print(result['distance'])  # 8
+print(result['path'])      # ['A', 'C', 'B', 'D']
+
+# Bellman-Ford — supports negative weights
+DG = nx.DiGraph()
+DG.add_edge('X', 'Y', weight=4)
+DG.add_edge('Y', 'Z', weight=-2)
+result = lg.bellman_ford(DG, 'X')
+print(result['distances'])  # {'X': 0, 'Y': 4, 'Z': 2}
+
+# BFS traversal
+visited = lg.bfs(G, 'A')
+print(visited)  # {'A': 0, 'B': 1, 'C': 1, 'D': 2}</code></pre>
+      </div>
+    </section>
+
+    <!-- ALGORITHMS OVERVIEW -->
+    <section id="algorithms">
+      <h2>Algorithms</h2>
+      <div class="algo-grid">
+        <div class="algo-card">
+          <div class="algo-card-name">Dijkstra</div>
+          <div class="algo-card-complexity">O(E + V log V)</div>
+          <div class="algo-card-desc">Classic shortest path. Non-negative weights. Directed &amp; undirected.</div>
+        </div>
+        <div class="algo-card">
+          <div class="algo-card-name">A* (A-Star)</div>
+          <div class="algo-card-complexity">O(b^d) — heuristic-guided</div>
+          <div class="algo-card-desc">Faster point-to-point with Euclidean, Manhattan or Haversine heuristic.</div>
+        </div>
+        <div class="algo-card">
+          <div class="algo-card-name">Bellman-Ford</div>
+          <div class="algo-card-complexity">O(V · E)</div>
+          <div class="algo-card-desc">Negative-weight edges. Negative-cycle detection with full cycle info.</div>
+        </div>
+        <div class="algo-card">
+          <div class="algo-card-name">Bidirectional Dijkstra</div>
+          <div class="algo-card-complexity">O(E + V log V) — ~2× faster</div>
+          <div class="algo-card-desc">Simultaneous forward/backward search. Ideal for large point-to-point queries.</div>
+        </div>
+        <div class="algo-card">
+          <div class="algo-card-name">BFS</div>
+          <div class="algo-card-complexity">O(V + E)</div>
+          <div class="algo-card-desc">Level-order traversal. Optimal for unweighted shortest paths.</div>
+        </div>
+        <div class="algo-card">
+          <div class="algo-card-name">DFS</div>
+          <div class="algo-card-complexity">O(V + E)</div>
+          <div class="algo-card-desc">Depth-first traversal. Cycle detection. Recursive &amp; iterative modes.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DIJKSTRA -->
+    <section id="dijkstra">
+      <h2>Dijkstra</h2>
+      <p>
+        Classic single-source shortest path algorithm for graphs with
+        <strong>non-negative edge weights</strong>. Works on both directed and undirected graphs.
+      </p>
+
+      <h3>dijkstra(graph, source)</h3>
+      <p>Returns a dictionary of shortest distances from <code>source</code> to all vertices.</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">python</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="language-python">import logarithma as lg
+import networkx as nx
+
+G = nx.Graph()
+G.add_edge('A', 'B', weight=4)
+G.add_edge('A', 'C', weight=2)
+G.add_edge('B', 'C', weight=1)
+G.add_edge('B', 'D', weight=5)
+
+distances = lg.dijkstra(G, 'A')
+# {'A': 0, 'C': 2, 'B': 3, 'D': 8}
+
+# Works with directed graphs too
+DG = nx.DiGraph()
+DG.add_edge('A', 'B', weight=1)
+DG.add_edge('B', 'C', weight=2)
+distances = lg.dijkstra(DG, 'A')
+# {'A': 0, 'B': 1, 'C': 3}</code></pre>
+      </div>
+
+      <h3>dijkstra_with_path(graph, source, target=None)</h3>
+      <p>Returns both distances and the actual paths.</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">python</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="language-python">result = lg.dijkstra_with_path(G, 'A', 'D')
+print(result['distances']['D'])  # 8
+print(result['paths']['D'])      # ['A', 'C', 'B', 'D']
+
+# All paths from source
+result = lg.dijkstra_with_path(G, 'A')
+for node, path in result['paths'].items():
+    print(f"{node}: {path}")</code></pre>
+      </div>
+    </section>
+
+    <!-- A* -->
+    <section id="astar">
+      <h2>A* (A-Star)</h2>
+      <p>
+        Heuristic-guided shortest path algorithm. Uses an admissible heuristic
+        <code>h(n)</code> to direct the search toward the goal, expanding far fewer nodes
+        than Dijkstra for point-to-point queries.
+      </p>
+      <div class="callout callout-info">
+        <div class="callout-icon">ℹ️</div>
+        <div class="callout-body">
+          <strong>Optimality guarantee:</strong> A* finds the optimal path if and only if
+          the heuristic is <em>admissible</em> — it never overestimates the true distance
+          to the goal. All built-in heuristics satisfy this condition.
+        </div>
+      </div>
+
+      <h3>astar(graph, source, target, heuristic=None)</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">python</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="language-python">from logarithma import astar, euclidean_heuristic, manhattan_heuristic
+
+# ── Euclidean heuristic (2D coordinate graphs) ──────────────────
+G = nx.Graph()
+pos = {'A': (0, 0), 'B': (3, 0), 'C': (3, 4), 'D': (6, 4)}
+G.add_edge('A', 'B', weight=3)
+G.add_edge('B', 'C', weight=4)
+G.add_edge('A', 'C', weight=10)
+G.add_edge('C', 'D', weight=3)
+
+h = euclidean_heuristic(pos)
+result = astar(G, 'A', 'D', heuristic=h)
+print(result['distance'])  # 10
+print(result['path'])      # ['A', 'B', 'C', 'D']
+
+# ── Manhattan heuristic (grid graphs) ──────────────────────────
+G_grid = nx.grid_2d_graph(5, 5)
+for u, v in G_grid.edges():
+    G_grid[u][v]['weight'] = 1
+pos_grid = {node: (node[1], node[0]) for node in G_grid.nodes()}
+
+h_manhattan = manhattan_heuristic(pos_grid)
+result = astar(G_grid, (0, 0), (4, 4), heuristic=h_manhattan)
+print(result['distance'])  # 8
+print(result['path'])      # [(0,0), (0,1), ..., (4,4)]
+
+# ── No heuristic → equivalent to Dijkstra ──────────────────────
+result = astar(G, 'A', 'D')  # heuristic defaults to zero</code></pre>
+      </div>
+
+      <h3>Haversine — Geographic Graphs</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">python</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="language-python">from logarithma import astar, haversine_heuristic
+
+# lat/lon coordinates
+cities = {
+    'Istanbul': (41.008, 28.978),
+    'Ankara':   (39.933, 32.859),
+    'Izmir':    (38.419, 27.128),
+}
+G = nx.Graph()
+G.add_edge('Istanbul', 'Ankara', weight=450)   # km
+G.add_edge('Ankara',   'Izmir',  weight=590)
+G.add_edge('Istanbul', 'Izmir',  weight=480)
+
+h = haversine_heuristic(cities)
+result = astar(G, 'Istanbul', 'Izmir', heuristic=h)
+print(result['distance'])  # 480  (direct is cheaper)
+print(result['path'])      # ['Istanbul', 'Izmir']</code></pre>
+      </div>
+
+      <h3>astar_with_stats — Heuristic Analysis</h3>
+      <p>Compares how many nodes different heuristics expand:</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">python</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="language-python">from logarithma import astar_with_stats, euclidean_heuristic, zero_heuristic
+
+# Zero heuristic (= Dijkstra)
+r_zero = astar_with_stats(G_grid, (0,0), (4,4), heuristic=zero_heuristic)
+print(r_zero['nodes_expanded'])   # e.g. 25 — visits all nodes
+
+# Euclidean heuristic
+r_euc = astar_with_stats(G_grid, (0,0), (4,4), heuristic=euclidean_heuristic(pos_grid))
+print(r_euc['nodes_expanded'])    # e.g. 9 — much fewer nodes visited</code></pre>
+      </div>
+    </section>
+
+    <!-- BELLMAN-FORD -->
+    <section id="bellman-ford">
+      <h2>Bellman-Ford</h2>
+      <p>
+        The only SSSP algorithm that handles <strong>negative-weight edges</strong>.
+        Also detects negative-weight cycles reachable from the source.
+      </p>
+      <div class="callout callout-warn">
+        <div class="callout-icon">⚠️</div>
+        <div class="callout-body">
+          <strong>Directed graphs only for negative weights.</strong>
+          An undirected graph with any negative-weight edge always contains a negative
+          cycle (the edge itself forms a 2-cycle). Use <code>nx.DiGraph()</code> when
+          working with negative weights.
+        </div>
+      </div>
+
+      <h3>bellman_ford(graph, source)</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">python</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="language-python">from logarithma import bellman_ford, NegativeCycleError
+import networkx as nx
+
+# ── Graph with negative edge (no cycle) ────────────────────────
+G = nx.DiGraph()
+G.add_edge('A', 'B', weight=4)
+G.add_edge('B', 'C', weight=-3)   # negative but no cycle
+G.add_edge('A', 'C', weight=5)
+G.add_edge('C', 'D', weight=1)
+
+result = bellman_ford(G, 'A')
+print(result['distances'])
+# {'A': 0, 'B': 4, 'C': 1, 'D': 2}
+# A→B=4, then B→C: 4+(-3)=1, C→D: 1+1=2
+
+# ── Negative cycle detection ────────────────────────────────────
+G_cycle = nx.DiGraph()
+G_cycle.add_edge('A', 'B', weight=1)
+G_cycle.add_edge('B', 'C', weight=-3)
+G_cycle.add_edge('C', 'A', weight=1)   # total cycle weight: -1
+
+try:
+    bellman_ford(G_cycle, 'A')
+except NegativeCycleError as e:
+    print("Negative cycle detected!")
+    print("Cycle:", e.cycle)   # ['A', 'B', 'C', 'A']</code></pre>
+      </div>
+
+      <h3>bellman_ford_path(graph, source, target)</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">python</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="language-python">from logarithma import bellman_ford_path
+
+result = bellman_ford_path(G, 'A', 'D')
+print(result['distance'])  # 2
+print(result['path'])      # ['A', 'B', 'C', 'D']
+
+# Arbitrage detection example
+exchange = nx.DiGraph()
+# Negative log-rates as weights: buy low, sell high
+exchange.add_edge('USD', 'EUR', weight=-0.05)
+exchange.add_edge('EUR', 'GBP', weight=-0.12)
+exchange.add_edge('GBP', 'USD', weight=-0.04)
+try:
+    bellman_ford(exchange, 'USD')
+except NegativeCycleError:
+    print("Arbitrage opportunity detected!")</code></pre>
+      </div>
+    </section>
+
+    <!-- BIDIRECTIONAL DIJKSTRA -->
+    <section id="bidir">
+      <h2>Bidirectional Dijkstra</h2>
+      <p>
+        Runs two simultaneous Dijkstra searches — forward from <code>source</code> and
+        backward from <code>target</code> — and terminates when the frontiers meet.
+        Typically <strong>~2× fewer node expansions</strong> than standard Dijkstra.
+      </p>
+
+      <h3>bidirectional_dijkstra(graph, source, target)</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">python</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="language-python">from logarithma import bidirectional_dijkstra
+import networkx as nx
+
+# ── Large road network ─────────────────────────────────────────
+G = nx.grid_2d_graph(100, 100)  # 10,000 nodes
+for u, v in G.edges():
+    G[u][v]['weight'] = 1
+
+result = bidirectional_dijkstra(G, (0, 0), (99, 99))
+print(result['distance'])  # 198
+print(result['path'][:4])  # [(0,0), (0,1), (0,2), ...]
+
+# ── Directed graph ─────────────────────────────────────────────
+DG = nx.DiGraph()
+DG.add_edge('S', 'A', weight=1)
+DG.add_edge('A', 'B', weight=2)
+DG.add_edge('S', 'B', weight=10)   # longer direct path
+DG.add_edge('B', 'T', weight=1)
+
+result = bidirectional_dijkstra(DG, 'S', 'T')
+print(result['distance'])  # 4  (S→A→B→T)
+print(result['path'])      # ['S', 'A', 'B', 'T']
+
+# ── Unreachable target ─────────────────────────────────────────
+result = bidirectional_dijkstra(DG, 'T', 'S')  # no reverse path
+print(result['distance'])  # inf
+print(result['path'])      # []</code></pre>
+      </div>
+    </section>
+
+    <!-- BFS -->
+    <section id="bfs">
+      <h2>BFS — Breadth-First Search</h2>
+      <p>
+        Level-order traversal. Finds <strong>shortest paths by edge count</strong>
+        in unweighted graphs.
+      </p>
+
+      <h3>bfs(graph, source)</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">python</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="language-python">from logarithma import bfs, bfs_path
+import networkx as nx
+
+G = nx.Graph()
+G.add_edges_from([('A','B'), ('B','C'), ('A','D'), ('D','E')])
+
+# Distances (hop count) from A
+distances = bfs(G, 'A')
+# {'A': 0, 'B': 1, 'D': 1, 'C': 2, 'E': 2}
+
+# Path to a target
+result = bfs_path(G, 'A', 'E')
+print(result['distances']['E'])  # 2
+print(result['paths']['E'])      # ['A', 'D', 'E']</code></pre>
+      </div>
+    </section>
+
+    <!-- DFS -->
+    <section id="dfs">
+      <h2>DFS — Depth-First Search</h2>
+      <p>Explores as deep as possible before backtracking. Supports recursive and iterative modes.</p>
+
+      <h3>dfs(graph, source) / detect_cycle(graph)</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">python</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="language-python">from logarithma import dfs, dfs_path, detect_cycle
+import networkx as nx
+
+G = nx.Graph()
+G.add_edges_from([('A','B'), ('B','C'), ('C','D'), ('A','D')])
+
+# DFS traversal order
+visited = dfs(G, 'A')
+# e.g. ['A', 'B', 'C', 'D']
+
+# Iterative mode
+visited = dfs(G, 'A', mode='iterative')
+
+# Find any path (not necessarily shortest)
+path = dfs_path(G, 'A', 'D')
+# ['A', 'D']   (direct edge found first)
+
+# Cycle detection
+has_cycle, cycle = detect_cycle(G)
+print(has_cycle)  # True  (A-B-C-D-A)
+print(cycle)      # ['A', 'B', 'C', 'D', 'A']
+
+# Directed graph
+DG = nx.DiGraph()
+DG.add_edges_from([('A','B'), ('B','C')])
+has_cycle, cycle = detect_cycle(DG)
+print(has_cycle)  # False</code></pre>
+      </div>
+    </section>
+
+    <!-- UTILS -->
+    <section id="utils">
+      <h2>Utils Module</h2>
+      <p>34 utility functions across 4 categories for graph generation, validation, conversion, and analysis.</p>
+
+      <h3>Graph Generators</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">python</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="language-python">from logarithma.utils import (
+    generate_random_graph,
+    generate_grid_graph,
+    generate_scale_free_graph,
+    generate_tree_graph,
+)
+
+# Erdős-Rényi random graph with weights
+G = generate_random_graph(n=100, edge_prob=0.1, weighted=True, seed=42)
+
+# 5×5 grid graph
+G_grid = generate_grid_graph(rows=5, cols=5)
+
+# Barabási-Albert scale-free graph (social network model)
+G_sf = generate_scale_free_graph(n=200, m=3)
+
+# Random tree
+G_tree = generate_tree_graph(n=50)</code></pre>
+      </div>
+
+      <h3>Validators</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">python</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="language-python">from logarithma.utils import is_connected, is_dag, has_negative_weights, validate_graph
+
+G = generate_random_graph(50, 0.1)
+
+print(is_connected(G))           # True / False
+print(is_dag(nx.DiGraph(G)))     # True if directed acyclic
+print(has_negative_weights(G))   # True if any edge weight < 0
+print(is_bipartite(G))           # True if graph is bipartite
+
+# Full validation report
+report = validate_graph(G)
+print(report)</code></pre>
+      </div>
+
+      <h3>Metrics</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">python</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="language-python">from logarithma.utils import graph_summary, graph_density, diameter
+
+G = generate_random_graph(100, 0.1, weighted=True)
+
+# Quick summary
+summary = graph_summary(G)
+print(summary)
+# {'nodes': 100, 'edges': 497, 'density': 0.1003,
+#  'avg_degree': 9.94, 'is_connected': True, ...}
+
+print(graph_density(G))   # 0.1003
+print(diameter(G))        # e.g. 4</code></pre>
+      </div>
+
+      <h3>Converters</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">python</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="language-python">from logarithma.utils import (
+    to_adjacency_matrix, from_adjacency_matrix,
+    to_edge_list, from_edge_list,
+)
+import numpy as np
+
+# Graph → adjacency matrix
+matrix = to_adjacency_matrix(G)   # numpy array
+
+# Adjacency matrix → Graph
+G2 = from_adjacency_matrix(matrix)
+
+# Graph → edge list
+edges = to_edge_list(G)
+# [(0, 1, 2.3), (0, 5, 1.7), ...]
+
+# Edge list → Graph
+G3 = from_edge_list(edges)</code></pre>
+      </div>
+    </section>
+
+    <!-- COMPLEXITY TABLE -->
+    <section id="complexity">
+      <h2>Complexity Reference</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Algorithm</th>
+              <th>Time</th>
+              <th>Space</th>
+              <th>Negative Weights</th>
+              <th>Best For</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Dijkstra</strong></td>
+              <td><code>O(E + V log V)</code></td>
+              <td><code>O(V)</code></td>
+              <td>✗</td>
+              <td>General SSSP</td>
+            </tr>
+            <tr>
+              <td><strong>A*</strong></td>
+              <td><code>O(b^d)</code> practical</td>
+              <td><code>O(V)</code></td>
+              <td>✗</td>
+              <td>Point-to-point with coordinates</td>
+            </tr>
+            <tr>
+              <td><strong>Bellman-Ford</strong></td>
+              <td><code>O(V · E)</code></td>
+              <td><code>O(V)</code></td>
+              <td>✓</td>
+              <td>Negative weights, cycle detection</td>
+            </tr>
+            <tr>
+              <td><strong>Bidirectional Dijkstra</strong></td>
+              <td><code>O(E + V log V)</code></td>
+              <td><code>O(V)</code></td>
+              <td>✗</td>
+              <td>Large point-to-point queries</td>
+            </tr>
+            <tr>
+              <td><strong>BFS</strong></td>
+              <td><code>O(V + E)</code></td>
+              <td><code>O(V)</code></td>
+              <td>n/a</td>
+              <td>Unweighted shortest path</td>
+            </tr>
+            <tr>
+              <td><strong>DFS</strong></td>
+              <td><code>O(V + E)</code></td>
+              <td><code>O(V)</code></td>
+              <td>n/a</td>
+              <td>Traversal, cycle detection</td>
+            </tr>
+            <tr>
+              <td><strong>Breaking Barrier SSSP</strong> 🎯</td>
+              <td><code>O(m + n log log n)</code></td>
+              <td><code>O(n)</code></td>
+              <td>✗</td>
+              <td>Directed SSSP beyond sorting barrier</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout callout-info">
+        <div class="callout-icon">🎯</div>
+        <div class="callout-body">
+          <strong>Breaking the Sorting Barrier SSSP</strong> (Duan et al., 2025 — arXiv:2504.17033v2)
+          is the primary research goal of this library. It breaks the classical
+          <code>O(m + n log n)</code> barrier for directed SSSP. Implementation is planned for v0.5.0.
+        </div>
+      </div>
+    </section>
+
+    <!-- CHANGELOG -->
+    <section id="changelog">
+      <h2>Changelog</h2>
+      <div class="timeline">
+
+        <div class="timeline-item">
+          <div class="timeline-dot-col">
+            <div class="timeline-dot current"></div>
+            <div class="timeline-line"></div>
+          </div>
+          <div class="timeline-content">
+            <div class="timeline-version">v0.3.0 — <span style="color:var(--accent)">Current</span></div>
+            <div class="timeline-date">March 2026</div>
+            <ul class="timeline-items">
+              <li>A* algorithm with Euclidean, Manhattan, Haversine heuristics</li>
+              <li>Bellman-Ford with negative-weight support and cycle detection</li>
+              <li>Bidirectional Dijkstra (~2× speedup for point-to-point)</li>
+              <li>Fixed <code>dijkstra_with_path</code> for unreachable nodes</li>
+              <li>113 unit tests total</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-dot-col">
+            <div class="timeline-dot done"></div>
+            <div class="timeline-line"></div>
+          </div>
+          <div class="timeline-content">
+            <div class="timeline-version">v0.2.0</div>
+            <div class="timeline-date">January 2026</div>
+            <ul class="timeline-items">
+              <li>BFS and DFS traversal algorithms</li>
+              <li>Utils module: 34 functions (generators, validators, converters, metrics)</li>
+              <li>Visualization module with Matplotlib + Plotly</li>
+              <li>Dijkstra extended with directed graph support</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-dot-col">
+            <div class="timeline-dot done"></div>
+          </div>
+          <div class="timeline-content">
+            <div class="timeline-version">v0.1.0</div>
+            <div class="timeline-date">June 2024</div>
+            <ul class="timeline-items">
+              <li>Initial release</li>
+              <li>Dijkstra's algorithm with NetworkX integration</li>
+              <li>PyPI package setup</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ROADMAP -->
+    <section id="roadmap">
+      <h2>Roadmap</h2>
+      <div class="timeline">
+
+        <div class="timeline-item">
+          <div class="timeline-dot-col">
+            <div class="timeline-dot future"></div>
+            <div class="timeline-line"></div>
+          </div>
+          <div class="timeline-content">
+            <div class="timeline-version">v0.4.0</div>
+            <div class="timeline-date">Planned — April 2026</div>
+            <ul class="timeline-items">
+              <li>Kruskal &amp; Prim Minimum Spanning Tree</li>
+              <li>Floyd-Warshall all-pairs shortest path</li>
+              <li>Tarjan SCC, Topological Sort</li>
+              <li>Ford-Fulkerson network flow</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-dot-col">
+            <div class="timeline-dot future" style="background:var(--accent);box-shadow:0 0 0 4px rgba(88,166,255,.15)"></div>
+            <div class="timeline-line"></div>
+          </div>
+          <div class="timeline-content">
+            <div class="timeline-version">v0.5.0 — 🎯 Main Goal</div>
+            <div class="timeline-date">Planned — June 2026</div>
+            <ul class="timeline-items">
+              <li><strong>Breaking the Sorting Barrier SSSP</strong></li>
+              <li>Implementation of Duan et al. (2025) — arXiv:2504.17033v2</li>
+              <li>O(m + n log log n) directed SSSP</li>
+              <li>Surpasses the classical O(m + n log n) barrier</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-dot-col">
+            <div class="timeline-dot future"></div>
+          </div>
+          <div class="timeline-content">
+            <div class="timeline-version">v1.0.0</div>
+            <div class="timeline-date">Planned — September 2026</div>
+            <ul class="timeline-items">
+              <li>Cython optimizations</li>
+              <li>Domain modules: logistics, finance, social networks</li>
+              <li>Production-ready stable release</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <p>
+    Built by <a href="https://github.com/softdevcan" target="_blank">Can AKYILDIRIM</a> ·
+    <a href="https://github.com/softdevcan/logarithma" target="_blank">GitHub</a> ·
+    <a href="https://pypi.org/project/logarithma/" target="_blank">PyPI</a> ·
+    MIT License
+  </p>
+  <p style="margin-top:.4rem; color: #484f58;">
+    Primary research goal: <em>Breaking the Sorting Barrier for Directed Single-Source Shortest Paths</em>
+    (Duan et al., 2025)
+  </p>
+</footer>
+
+<!-- Prism.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+
+<script>
+  // ── Copy button ────────────────────────────────────────────────
+  function copyCode(btn) {
+    const code = btn.closest('.code-block').querySelector('code');
+    navigator.clipboard.writeText(code.innerText).then(() => {
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy', 1800);
+    });
+  }
+
+  // ── Active sidebar link on scroll ─────────────────────────────
+  const sections = document.querySelectorAll('section[id]');
+  const sidebarLinks = document.querySelectorAll('aside a');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        sidebarLinks.forEach(a => a.classList.remove('active'));
+        const active = document.querySelector(`aside a[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>
