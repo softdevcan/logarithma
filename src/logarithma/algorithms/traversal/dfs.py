@@ -12,6 +12,13 @@ Space Complexity: O(V)
 from typing import Dict, List, Optional, Set, Union, Tuple
 import networkx as nx
 
+from logarithma.algorithms.exceptions import (
+    InvalidModeError,
+    validate_graph,
+    validate_source,
+    validate_target,
+)
+
 
 def dfs(
     graph: Union[nx.Graph, nx.DiGraph],
@@ -49,14 +56,10 @@ def dfs(
         ['A', 'B', 'C', 'D']  # Order may vary
     """
     # Validate input
-    if not graph:
-        raise ValueError("Graph is empty")
-    
-    if source not in graph:
-        raise ValueError(f"Source vertex '{source}' not found in graph")
-    
-    if mode not in ['recursive', 'iterative']:
-        raise ValueError(f"Invalid mode '{mode}'. Use 'recursive' or 'iterative'")
+    validate_graph(graph, "dfs")
+    validate_source(graph, source)
+    if mode not in ('recursive', 'iterative'):
+        raise InvalidModeError(mode, ['recursive', 'iterative'])
     
     if mode == 'recursive':
         return _dfs_recursive(graph, source)
@@ -140,14 +143,9 @@ def dfs_path(
         ['A', 'B', 'C']  # One possible path
     """
     # Validate input
-    if not graph:
-        raise ValueError("Graph is empty")
-    
-    if source not in graph:
-        raise ValueError(f"Source vertex '{source}' not found in graph")
-    
-    if target not in graph:
-        raise ValueError(f"Target vertex '{target}' not found in graph")
+    validate_graph(graph, "dfs_path")
+    validate_source(graph, source)
+    validate_target(graph, target)
     
     # DFS with path tracking
     visited = set()
@@ -200,9 +198,9 @@ def detect_cycle(
         >>> print(has_cycle)  # True
         >>> print(cycle)      # ['A', 'B', 'C', 'A']
     """
-    if not graph:
+    if len(graph) == 0:
         return False, None
-    
+
     is_directed = isinstance(graph, nx.DiGraph)
     visited = set()
     rec_stack = set()  # For directed graphs

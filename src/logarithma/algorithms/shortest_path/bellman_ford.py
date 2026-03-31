@@ -53,23 +53,12 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import networkx as nx
 
-
-# ---------------------------------------------------------------------------
-# Custom exception
-# ---------------------------------------------------------------------------
-
-class NegativeCycleError(ValueError):
-    """
-    Raised when a negative-weight cycle reachable from the source is detected.
-
-    Attributes:
-        cycle: List of nodes forming the detected negative cycle, or None if
-               the exact cycle could not be reconstructed.
-    """
-
-    def __init__(self, message: str, cycle: Optional[List[Any]] = None):
-        super().__init__(message)
-        self.cycle = cycle
+from logarithma.algorithms.exceptions import (
+    NegativeCycleError,
+    validate_graph,
+    validate_source,
+    validate_target,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -130,10 +119,8 @@ def bellman_ford(
         >>> bellman_ford(G, 'A')             # raises NegativeCycleError
     """
     # --- Validation ---
-    if len(graph) == 0:
-        raise ValueError("Graph is empty.")
-    if source not in graph:
-        raise ValueError(f"Source vertex '{source}' not found in graph.")
+    validate_graph(graph, "bellman_ford")
+    validate_source(graph, source)
 
     nodes = list(graph.nodes())
     n = len(nodes)
@@ -169,10 +156,7 @@ def bellman_ford(
 
     if cycle_entry is not None:
         cycle = _reconstruct_negative_cycle(pred, cycle_entry, n)
-        raise NegativeCycleError(
-            f"Negative-weight cycle detected reachable from source '{source}'.",
-            cycle=cycle,
-        )
+        raise NegativeCycleError(source, cycle=cycle)
 
     return {'distances': dist, 'predecessors': pred}
 
@@ -205,12 +189,9 @@ def bellman_ford_path(
         >>> print(result['distance'])
         >>> print(result['path'])
     """
-    if len(graph) == 0:
-        raise ValueError("Graph is empty.")
-    if source not in graph:
-        raise ValueError(f"Source vertex '{source}' not found in graph.")
-    if target not in graph:
-        raise ValueError(f"Target vertex '{target}' not found in graph.")
+    validate_graph(graph, "bellman_ford_path")
+    validate_source(graph, source)
+    validate_target(graph, target)
 
     result = bellman_ford(graph, source)
     dist = result['distances']

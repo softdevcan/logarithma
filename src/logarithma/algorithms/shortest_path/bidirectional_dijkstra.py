@@ -53,6 +53,13 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import networkx as nx
 
+from logarithma.algorithms.exceptions import (
+    validate_graph,
+    validate_source,
+    validate_target,
+    validate_weight,
+)
+
 
 def bidirectional_dijkstra(
     graph: Union[nx.Graph, nx.DiGraph],
@@ -102,12 +109,9 @@ def bidirectional_dijkstra(
         >>> print(result['path'])       # [0, 1, 2, 3, 4, 5]
     """
     # --- Validation ---
-    if len(graph) == 0:
-        raise ValueError("Graph is empty.")
-    if source not in graph:
-        raise ValueError(f"Source vertex '{source}' not found in graph.")
-    if target not in graph:
-        raise ValueError(f"Target vertex '{target}' not found in graph.")
+    validate_graph(graph, "bidirectional_dijkstra")
+    validate_source(graph, source)
+    validate_target(graph, target)
 
     # Trivial case: source == target
     if source == target:
@@ -178,11 +182,8 @@ def bidirectional_dijkstra(
 
         for v in neighbors:
             w = get_weight(v, u)
-            if w < 0:
-                raise ValueError(
-                    f"Negative edge weight detected (weight={w}). "
-                    "Bidirectional Dijkstra requires non-negative weights."
-                )
+            validate_weight(v if reverse else u, u if reverse else v, w,
+                            "bidirectional_dijkstra")
             new_dist = dist_mine[u] + w
             if new_dist < dist_mine.get(v, float('inf')):
                 dist_mine[v] = new_dist

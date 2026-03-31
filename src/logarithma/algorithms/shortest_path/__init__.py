@@ -26,7 +26,15 @@ from .astar import (
     haversine_heuristic,
     zero_heuristic,
 )
-from .bellman_ford import bellman_ford, bellman_ford_path, NegativeCycleError
+from .bellman_ford import bellman_ford, bellman_ford_path
+from logarithma.algorithms.exceptions import (
+    GraphError,
+    EmptyGraphError,
+    NodeNotFoundError,
+    NegativeWeightError,
+    NegativeCycleError,
+    InvalidModeError,
+)
 from .bidirectional_dijkstra import bidirectional_dijkstra
 
 __all__ = [
@@ -43,7 +51,13 @@ __all__ = [
     # Bellman-Ford
     'bellman_ford',
     'bellman_ford_path',
-    'NegativeCycleError',
     # Bidirectional Dijkstra
     'bidirectional_dijkstra',
+    # Exceptions
+    'GraphError',
+    'EmptyGraphError',
+    'NodeNotFoundError',
+    'NegativeWeightError',
+    'NegativeCycleError',
+    'InvalidModeError',
 ]

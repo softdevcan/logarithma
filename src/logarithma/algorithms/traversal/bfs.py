@@ -13,6 +13,12 @@ from collections import deque
 from typing import Dict, List, Optional, Set, Union
 import networkx as nx
 
+from logarithma.algorithms.exceptions import (
+    validate_graph,
+    validate_source,
+    validate_target,
+)
+
 
 def bfs(
     graph: Union[nx.Graph, nx.DiGraph],
@@ -50,12 +56,9 @@ def bfs(
         {'A': 0, 'B': 1, 'D': 1, 'C': 2}
     """
     # Validate input
-    if not graph:
-        raise ValueError("Graph is empty")
-    
-    if source not in graph:
-        raise ValueError(f"Source vertex '{source}' not found in graph")
-    
+    validate_graph(graph, "bfs")
+    validate_source(graph, source)
+
     # Initialize
     distances = {source: 0}
     queue = deque([source])
@@ -108,14 +111,10 @@ def bfs_path(
         >>> print(result['paths']['C'])      # Path: ['A', 'B', 'C']
     """
     # Validate input
-    if not graph:
-        raise ValueError("Graph is empty")
-    
-    if source not in graph:
-        raise ValueError(f"Source vertex '{source}' not found in graph")
-    
-    if target and target not in graph:
-        raise ValueError(f"Target vertex '{target}' not found in graph")
+    validate_graph(graph, "bfs_path")
+    validate_source(graph, source)
+    if target is not None:
+        validate_target(graph, target)
     
     # Initialize
     distances = {source: 0}

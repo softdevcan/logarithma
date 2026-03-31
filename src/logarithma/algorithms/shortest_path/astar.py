@@ -32,6 +32,13 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import networkx as nx
 
+from logarithma.algorithms.exceptions import (
+    validate_graph,
+    validate_source,
+    validate_target,
+    validate_weight,
+)
+
 
 # ---------------------------------------------------------------------------
 # Built-in admissible heuristics
@@ -172,12 +179,9 @@ def astar(
         >>> print(result['path'])       # ['A', 'B', 'C', 'D']
     """
     # --- Input validation ---
-    if len(graph) == 0:
-        raise ValueError("Graph is empty.")
-    if source not in graph:
-        raise ValueError(f"Source vertex '{source}' not found in graph.")
-    if target not in graph:
-        raise ValueError(f"Target vertex '{target}' not found in graph.")
+    validate_graph(graph, "astar")
+    validate_source(graph, source)
+    validate_target(graph, target)
 
     if heuristic is None:
         heuristic = zero_heuristic
@@ -220,11 +224,7 @@ def astar(
                 continue
 
             weight = graph[current][neighbor].get('weight', 1)
-            if weight < 0:
-                raise ValueError(
-                    f"Negative edge weight detected: {current} → {neighbor} "
-                    f"(weight={weight}). A* requires non-negative weights."
-                )
+            validate_weight(current, neighbor, weight, "astar")
 
             tentative_g = g_score[current] + weight
 
@@ -270,12 +270,9 @@ def astar_with_stats(
         >>> print(result['nodes_expanded'])
         >>> print(result['nodes_generated'])
     """
-    if len(graph) == 0:
-        raise ValueError("Graph is empty.")
-    if source not in graph:
-        raise ValueError(f"Source vertex '{source}' not found in graph.")
-    if target not in graph:
-        raise ValueError(f"Target vertex '{target}' not found in graph.")
+    validate_graph(graph, "astar_with_stats")
+    validate_source(graph, source)
+    validate_target(graph, target)
 
     if heuristic is None:
         heuristic = zero_heuristic
@@ -313,11 +310,7 @@ def astar_with_stats(
                 continue
 
             weight = graph[current][neighbor].get('weight', 1)
-            if weight < 0:
-                raise ValueError(
-                    f"Negative edge weight detected: {current} → {neighbor} "
-                    f"(weight={weight})."
-                )
+            validate_weight(current, neighbor, weight, "astar_with_stats")
 
             tentative_g = g_score[current] + weight
             if tentative_g < g_score[neighbor]:

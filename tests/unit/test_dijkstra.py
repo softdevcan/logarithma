@@ -118,7 +118,7 @@ class TestDijkstra:
         """Test error handling for empty graph"""
         G = nx.Graph()
         
-        with pytest.raises(ValueError, match="Graph is empty"):
+        with pytest.raises(ValueError, match="graph is empty"):
             dijkstra(G, 'A')
     
     def test_negative_weight(self):

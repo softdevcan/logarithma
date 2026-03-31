@@ -32,7 +32,7 @@ def example_1_basic_dijkstra():
     for node, dist in sorted(distances.items()):
         print(f"  {node}: {dist}")
     
-    print("\n✓ A to E: A -> C (2) -> B (3) -> D (8) -> E (10)")
+    print("\n[+] A to E: A -> C (2) -> B (3) -> D (8) -> E (10)")
 
 
 def example_2_with_path():
@@ -79,7 +79,7 @@ def example_3_directed_graph():
     for node, dist in sorted(distances.items()):
         print(f"  {node}: {dist}")
     
-    print("\n✓ In directed graphs, edges only work one way!")
+    print("\n[+] In directed graphs, edges only work one way!")
 
 
 def example_4_real_world_scenario():
@@ -120,22 +120,22 @@ def example_5_error_handling():
     try:
         lg.dijkstra(G, 'Z')
     except ValueError as e:
-        print(f"\n✗ Error caught: {e}")
+        print(f"\n[-] Error caught: {e}")
     
     # Try negative weight
     G.add_edge('B', 'C', weight=-1)
     try:
         lg.dijkstra(G, 'A')
     except ValueError as e:
-        print(f"✗ Error caught: {e}")
+        print(f"[-] Error caught: {e}")
     
-    print("\n✓ Logarithma provides helpful error messages!")
+    print("\n[+] Logarithma provides helpful error messages!")
 
 
 if __name__ == "__main__":
-    print("\n" + "🔷" * 30)
+    print("\n" + "=" * 60)
     print("LOGARITHMA - Dijkstra Algorithm Examples")
-    print("🔷" * 30)
+    print("=" * 60)
     
     example_1_basic_dijkstra()
     example_2_with_path()
@@ -144,5 +144,5 @@ if __name__ == "__main__":
     example_5_error_handling()
     
     print("\n" + "=" * 60)
-    print("✅ All examples completed successfully!")
+    print("All examples completed successfully!")
     print("=" * 60 + "\n")

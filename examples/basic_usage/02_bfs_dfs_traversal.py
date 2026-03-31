@@ -78,7 +78,7 @@ def example_3_dfs_basics():
     visited_iterative = lg.dfs(G, 'A', mode='iterative')
     print(f"DFS (iterative) from 'A': {visited_iterative}")
     
-    print("\n✓ Both methods explore depth-first!")
+    print("\n[+] Both methods explore depth-first!")
 
 
 def example_4_cycle_detection():
@@ -161,14 +161,14 @@ def example_6_comparison():
     print(f"\nFinding path from 1 to 7:")
     print(f"  BFS path: {bfs_path} (length: {len(bfs_path)})")
     print(f"  DFS path: {dfs_path} (length: {len(dfs_path)})")
-    print(f"\n✓ BFS guarantees shortest path!")
-    print(f"✓ DFS is faster for deep searches!")
+    print(f"\n[+] BFS guarantees shortest path!")
+    print(f"[+] DFS is faster for deep searches!")
 
 
 if __name__ == "__main__":
-    print("\n" + "🔷" * 30)
+    print("\n" + "=" * 60)
     print("LOGARITHMA - BFS & DFS Examples")
-    print("🔷" * 30)
+    print("=" * 60)
     
     example_1_bfs_basics()
     example_2_bfs_shortest_path()
@@ -178,5 +178,5 @@ if __name__ == "__main__":
     example_6_comparison()
     
     print("\n" + "=" * 60)
-    print("✅ All examples completed successfully!")
+    print("All examples completed successfully!")
     print("=" * 60 + "\n")

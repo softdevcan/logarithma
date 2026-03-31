@@ -18,7 +18,7 @@ def example_1_graph_generators():
     
     # Random graph
     random_g = generate_random_graph(50, edge_probability=0.1)
-    print(f"\nRandom Graph (Erdős-Rényi):")
+    print(f"\nRandom Graph (Erdos-Renyi):")
     print(f"  Nodes: {random_g.number_of_nodes()}")
     print(f"  Edges: {random_g.number_of_edges()}")
     
@@ -182,9 +182,9 @@ def example_6_real_world_workflow():
 
 
 if __name__ == "__main__":
-    print("\n" + "🔷" * 30)
+    print("\n" + "=" * 60)
     print("LOGARITHMA - Utils Module Showcase")
-    print("🔷" * 30)
+    print("=" * 60)
     
     example_1_graph_generators()
     example_2_validators()
@@ -194,5 +194,5 @@ if __name__ == "__main__":
     example_6_real_world_workflow()
     
     print("\n" + "=" * 60)
-    print("✅ All examples completed successfully!")
+    print("All examples completed successfully!")
     print("=" * 60 + "\n")

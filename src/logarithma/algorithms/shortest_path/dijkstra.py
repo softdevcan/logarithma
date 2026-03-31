@@ -13,6 +13,13 @@ import heapq
 from typing import Dict, List, Optional, Union, Any
 import networkx as nx
 
+from logarithma.algorithms.exceptions import (
+    validate_graph,
+    validate_source,
+    validate_target,
+    validate_weight,
+)
+
 
 def dijkstra(
     graph: Union[nx.Graph, nx.DiGraph], 
@@ -58,11 +65,8 @@ def dijkstra(
         >>> distances = dijkstra(DG, 'A')
     """
     # Validate input
-    if not graph:
-        raise ValueError("Graph is empty")
-    
-    if source not in graph:
-        raise ValueError(f"Source vertex '{source}' not found in graph")
+    validate_graph(graph, "dijkstra")
+    validate_source(graph, source)
 
     # Initialize distances
     distances = {node: float('inf') for node in graph.nodes()}
@@ -85,15 +89,8 @@ def dijkstra(
         for neighbor in graph.neighbors(current):
             # Get edge weight (default to 1 if not specified)
             weight = graph[current][neighbor].get('weight', 1)
-            
-            # Validate non-negative weight
-            if weight < 0:
-                raise ValueError(
-                    f"Negative edge weight detected: {current} -> {neighbor} "
-                    f"(weight={weight}). Dijkstra's algorithm requires non-negative weights. "
-                    f"Use Bellman-Ford algorithm for graphs with negative weights."
-                )
-            
+            validate_weight(current, neighbor, weight, "dijkstra")
+
             new_distance = current_dist + weight
 
             # Update if shorter path found
@@ -144,14 +141,10 @@ def dijkstra_with_path(
         ...     print(f"{node}: {path}")
     """
     # Validate input
-    if not graph:
-        raise ValueError("Graph is empty")
-    
-    if source not in graph:
-        raise ValueError(f"Source vertex '{source}' not found in graph")
-    
-    if target and target not in graph:
-        raise ValueError(f"Target vertex '{target}' not found in graph")
+    validate_graph(graph, "dijkstra_with_path")
+    validate_source(graph, source)
+    if target is not None:
+        validate_target(graph, target)
 
     # Initialize
     distances = {node: float('inf') for node in graph.nodes()}
@@ -177,14 +170,8 @@ def dijkstra_with_path(
         # Process neighbors
         for neighbor in graph.neighbors(current):
             weight = graph[current][neighbor].get('weight', 1)
-            
-            # Validate non-negative weight
-            if weight < 0:
-                raise ValueError(
-                    f"Negative edge weight detected: {current} -> {neighbor} "
-                    f"(weight={weight}). Dijkstra's algorithm requires non-negative weights."
-                )
-            
+            validate_weight(current, neighbor, weight, "dijkstra_with_path")
+
             new_distance = current_dist + weight
 
             if new_distance < distances[neighbor]:

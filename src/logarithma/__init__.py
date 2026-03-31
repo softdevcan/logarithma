@@ -49,9 +49,15 @@ from .algorithms import (
     # Bellman-Ford
     bellman_ford,
     bellman_ford_path,
-    NegativeCycleError,
     # Bidirectional Dijkstra
     bidirectional_dijkstra,
+    # Exceptions
+    GraphError,
+    EmptyGraphError,
+    NodeNotFoundError,
+    NegativeWeightError,
+    NegativeCycleError,
+    InvalidModeError,
 )
 from .algorithms.traversal import bfs, bfs_path, dfs, dfs_path, detect_cycle
 
@@ -67,7 +73,6 @@ __all__ = [
     'zero_heuristic',
     'bellman_ford',
     'bellman_ford_path',
-    'NegativeCycleError',
     'bidirectional_dijkstra',
     # Traversal
     'bfs',
@@ -75,6 +80,13 @@ __all__ = [
     'dfs',
     'dfs_path',
     'detect_cycle',
+    # Exceptions
+    'GraphError',
+    'EmptyGraphError',
+    'NodeNotFoundError',
+    'NegativeWeightError',
+    'NegativeCycleError',
+    'InvalidModeError',
     # Metadata
     '__version__',
     '__author__',
