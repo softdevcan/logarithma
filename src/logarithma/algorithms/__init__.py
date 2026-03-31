@@ -3,11 +3,14 @@ LOGARITHMA Algorithms Module
 ===========================
 
 Graph algorithms collection including shortest paths,
-traversal algorithms, and advanced optimization algorithms.
+traversal algorithms, MST, network flow, and graph properties.
 
 Modules:
-    shortest_path — Dijkstra, A*, Bellman-Ford, Bidirectional Dijkstra
-    traversal     — BFS, DFS, cycle detection
+    shortest_path   — Dijkstra, A*, Bellman-Ford, Bidirectional Dijkstra
+    traversal       — BFS, DFS, cycle detection
+    mst             — Kruskal, Prim
+    network_flow    — Edmonds-Karp max flow
+    graph_properties — Tarjan SCC, Topological Sort
 """
 
 from .shortest_path import (
@@ -31,6 +34,10 @@ from .shortest_path import (
     InvalidModeError,
 )
 from .traversal import bfs, bfs_path, dfs, dfs_path, detect_cycle
+from .mst import kruskal_mst, prim_mst
+from .network_flow import max_flow
+from .graph_properties import tarjan_scc, topological_sort
+from .exceptions import NotDAGError, UndirectedGraphRequiredError
 
 __all__ = [
     # Shortest Path
@@ -51,6 +58,14 @@ __all__ = [
     'dfs',
     'dfs_path',
     'detect_cycle',
+    # MST
+    'kruskal_mst',
+    'prim_mst',
+    # Network Flow
+    'max_flow',
+    # Graph Properties
+    'tarjan_scc',
+    'topological_sort',
     # Exceptions
     'GraphError',
     'EmptyGraphError',
@@ -58,4 +73,6 @@ __all__ = [
     'NegativeWeightError',
     'NegativeCycleError',
     'InvalidModeError',
+    'NotDAGError',
+    'UndirectedGraphRequiredError',
 ]

@@ -57,6 +57,22 @@ from .traversal_viz import (
     plot_dfs_tree,
 )
 
+from .mst_viz import (
+    plot_mst,
+    plot_mst_comparison,
+    plot_kruskal_steps,
+)
+
+from .flow_viz import (
+    plot_flow_network,
+    plot_flow_paths,
+)
+
+from .graph_properties_viz import (
+    plot_scc,
+    plot_topological_order,
+)
+
 __all__ = [
     # Graph plotting
     'plot_graph',
@@ -78,4 +94,14 @@ __all__ = [
     'plot_shortest_path_comparison',
     # Traversal-specific visualization
     'plot_dfs_tree',
+    # MST visualization
+    'plot_mst',
+    'plot_mst_comparison',
+    'plot_kruskal_steps',
+    # Network flow visualization
+    'plot_flow_network',
+    'plot_flow_paths',
+    # Graph properties visualization
+    'plot_scc',
+    'plot_topological_order',
 ]

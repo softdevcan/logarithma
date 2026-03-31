@@ -90,6 +90,46 @@ class InvalidModeError(GraphError, ValueError):
         )
 
 
+class NotDAGError(GraphError, ValueError):
+    """Raised when topological sort is called on a graph that is not a DAG.
+
+    Attributes:
+        algorithm: Name of the algorithm that detected the cycle.
+        cycle: List of nodes forming the detected cycle, or None if the exact
+               cycle could not be reconstructed.
+    """
+
+    def __init__(self, algorithm: str, cycle: Optional[List[Any]] = None):
+        self.algorithm = algorithm
+        self.cycle = cycle
+        cycle_str = (
+            f" Detected cycle: {' -> '.join(str(n) for n in cycle)}."
+            if cycle else ""
+        )
+        super().__init__(
+            f"'{algorithm}' requires a Directed Acyclic Graph (DAG). "
+            f"The graph contains at least one cycle.{cycle_str} "
+            f"Use detect_cycle() to find cycles before calling this algorithm."
+        )
+
+
+class UndirectedGraphRequiredError(GraphError, TypeError):
+    """Raised when an algorithm requires an undirected graph but a directed
+    graph is given.
+
+    Attributes:
+        algorithm: Name of the algorithm that requires an undirected graph.
+    """
+
+    def __init__(self, algorithm: str):
+        self.algorithm = algorithm
+        super().__init__(
+            f"'{algorithm}' requires an undirected graph (nx.Graph). "
+            f"A directed graph (nx.DiGraph) was provided. "
+            f"Convert with G.to_undirected() if appropriate."
+        )
+
+
 # ---------------------------------------------------------------------------
 # Validation helpers
 # ---------------------------------------------------------------------------
@@ -138,3 +178,15 @@ def validate_weight(
     """
     if weight < 0:
         raise NegativeWeightError(u, v, weight, algorithm)
+
+
+def validate_undirected(
+    graph: Union[nx.Graph, nx.DiGraph], algorithm: str
+) -> None:
+    """Validate that the graph is undirected.
+
+    Raises:
+        UndirectedGraphRequiredError: If a DiGraph is given.
+    """
+    if isinstance(graph, nx.DiGraph):
+        raise UndirectedGraphRequiredError(algorithm)

@@ -130,9 +130,59 @@ print(graph_summary(G))
 # {'nodes': 100, 'edges': 491, 'density': 0.099, 'avg_degree': 9.82, ...}
 ```
 
+### MST (Minimum Spanning Tree)
+
+**Kruskal** — `O(E log E)`, Union-Find with path compression
+
+```python
+result = lg.kruskal_mst(G)
+print(result['mst_edges'])     # [(u, v, weight), ...]
+print(result['total_weight'])
+print(result['num_components'])  # 1 = spanning tree, >1 = spanning forest
+```
+
+**Prim** — `O(E + V log V)`, min-heap based
+
+```python
+result = lg.prim_mst(G, start='A')
+```
+
+### Network Flow
+
+**Edmonds-Karp max flow** — `O(V·E²)`, deterministic
+
+```python
+result = lg.max_flow(G, source='s', sink='t')
+print(result['flow_value'])   # total max flow
+print(result['flow_dict'])    # flow on each edge
+```
+
+### Graph Properties
+
+**Tarjan SCC** — `O(V+E)`, iterative, returns SCCs in reverse topological order
+
+```python
+sccs = lg.tarjan_scc(G)      # List[List[node]]
+for scc in sccs:
+    print(scc)
+```
+
+**Topological Sort** — `O(V+E)`, DFS or Kahn method
+
+```python
+from logarithma import NotDAGError
+
+order = lg.topological_sort(G, method='dfs')    # or 'kahn'
+
+try:
+    order = lg.topological_sort(cyclic_graph)
+except NotDAGError as e:
+    print(e.cycle)   # detected cycle
+```
+
 ### Visualization
 
-16 visualization functions — requires `pip install logarithma[viz]`.
+23 visualization functions — requires `pip install logarithma[viz]`.
 
 **General graph plotting:**
 ```python
@@ -152,19 +202,26 @@ from logarithma.visualization import (
     plot_bidirectional_search,     # forward/backward frontiers, meeting point
     plot_shortest_path_comparison, # Dijkstra vs A* vs BiDijkstra side by side
     plot_dfs_tree,                 # tree/back/cross edges, discovery-finish times
+    # MST
+    plot_mst,                      # MST edges highlighted on original graph
+    plot_mst_comparison,           # Kruskal vs Prim side by side
+    plot_kruskal_steps,            # step-by-step Kruskal animation
+    # Network Flow
+    plot_flow_network,             # flow/capacity labels, saturated/partial/empty
+    plot_flow_paths,               # active flow paths (width ∝ flow)
+    # Graph Properties
+    plot_scc,                      # each SCC a distinct colour + condensation DAG
+    plot_topological_order,        # left-to-right layered layout with rank numbers
 )
-
-# A* — show which nodes were expanded vs skipped
-from logarithma.algorithms.shortest_path.astar import manhattan_heuristic
-pos = {node: node for node in G.nodes()}   # grid graph positions
-plot_astar_search(G, source=(0,0), target=(4,4),
-                  heuristic=manhattan_heuristic(pos), show_heuristic=True)
 
 # DFS tree — edge classification + discovery/finish timestamps
 plot_dfs_tree(G, source='A', show_discovery_finish=True, show_depth=True)
 
-# Side-by-side comparison
-plot_shortest_path_comparison(G, source=0, target=33)
+# MST step-by-step
+plot_kruskal_steps(G, max_steps=6)
+
+# SCC with condensation DAG
+plot_scc(G, show_condensation=True)
 ```
 
 ## Error Handling
@@ -173,12 +230,14 @@ All algorithms raise descriptive exceptions from a unified hierarchy:
 
 ```python
 from logarithma.algorithms.exceptions import (
-    GraphError,          # base class for all logarithma errors
-    EmptyGraphError,     # graph has no nodes
-    NodeNotFoundError,   # source or target not in graph (.node, .role attributes)
-    NegativeWeightError, # negative edge in Dijkstra/A*/BiDijkstra (.u, .v, .weight)
-    NegativeCycleError,  # Bellman-Ford detected a cycle (.cycle = list of nodes)
-    InvalidModeError,    # invalid mode string (e.g. dfs mode) (.mode, .valid_modes)
+    GraphError,                    # base class for all logarithma errors
+    EmptyGraphError,               # graph has no nodes
+    NodeNotFoundError,             # source or target not in graph (.node, .role)
+    NegativeWeightError,           # negative edge in Dijkstra/A*/BiDijkstra
+    NegativeCycleError,            # Bellman-Ford detected a cycle (.cycle)
+    InvalidModeError,              # invalid mode string (.mode, .valid_modes)
+    NotDAGError,                   # topological_sort called on cyclic graph (.cycle)
+    UndirectedGraphRequiredError,  # DiGraph passed to MST algorithm
 )
 
 try:
@@ -193,13 +252,18 @@ All exceptions are subclasses of both `GraphError` and `ValueError`, so existing
 
 ## Complexity Reference
 
-| Algorithm | Time | Negative Weights |
-|-----------|------|-----------------|
-| Dijkstra | `O(E + V log V)` | ✗ |
-| A\* | `O(b^d)` practical | ✗ |
-| Bellman-Ford | `O(V · E)` | ✓ |
-| Bidirectional Dijkstra | `O(E + V log V)` ~2× faster | ✗ |
-| BFS / DFS | `O(V + E)` | — |
+| Algorithm | Time | Notes |
+|-----------|------|-------|
+| Dijkstra | `O(E + V log V)` | non-negative weights |
+| A\* | `O(b^d)` practical | heuristic-guided |
+| Bellman-Ford | `O(V · E)` | negative weights, cycle detection |
+| Bidirectional Dijkstra | `O(E + V log V)` ~2× faster | point-to-point |
+| BFS / DFS | `O(V + E)` | traversal |
+| Kruskal MST | `O(E log E)` | undirected, spanning forest |
+| Prim MST | `O(E + V log V)` | undirected, spanning forest |
+| Max Flow (Edmonds-Karp) | `O(V · E²)` | directed/undirected |
+| Tarjan SCC | `O(V + E)` | directed/undirected |
+| Topological Sort | `O(V + E)` | DAG only |
 
 ## Documentation
 

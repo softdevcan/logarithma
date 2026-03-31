@@ -5,6 +5,59 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-03-31
+
+### Added
+
+- **MST Algoritmaları** (`src/logarithma/algorithms/mst/`)
+  - `kruskal_mst(graph, weight='weight')` — Kruskal's MST, Union-Find ile (path compression + union by rank), O(E log E)
+  - `prim_mst(graph, start=None, weight='weight')` — Prim's MST, min-heap ile, O(E + V log V)
+  - Her ikisi de disconnected graph'ta spanning forest döndürür; `num_components` ile bileşen sayısı raporlanır
+
+- **Network Flow** (`src/logarithma/algorithms/network_flow/`)
+  - `max_flow(graph, source, sink, capacity='capacity', method='edmonds_karp')` — Edmonds-Karp algoritması, O(V·E²)
+  - `method='ford_fulkerson'` alias olarak da kabul edilir
+  - Residual graph, flow_dict ve flow_value döndürür
+  - Directed ve undirected graph desteği
+
+- **Graph Properties** (`src/logarithma/algorithms/graph_properties/`)
+  - `tarjan_scc(graph)` — Tarjan'ın SCC algoritması, iteratif implementasyon, O(V+E)
+  - `topological_sort(graph, method='dfs')` — DFS (post-order) ve Kahn (BFS/in-degree) metodları, O(V+E)
+  - Her ikisi de directed ve undirected graph desteğiyle
+
+- **2 yeni exception** (`exceptions.py`)
+  - `NotDAGError` — topological_sort döngülü grafa uygulandığında; `.cycle` attribute ile tespit edilen döngü
+  - `UndirectedGraphRequiredError` — directed grafa undirected-only algoritma uygulandığında
+  - `validate_undirected()` validator helper eklendi
+
+- **7 yeni visualization fonksiyonu** (toplam 23)
+  - `plot_mst(graph, mst_result, algorithm, ...)` — MST kenarları yeşil/kalın, non-MST gri
+  - `plot_mst_comparison(graph)` — Kruskal ve Prim yan yana subplot
+  - `plot_kruskal_steps(graph, max_steps)` — adım adım Kruskal (her adım ayrı subplot)
+  - `plot_flow_network(graph, flow_result, source, sink)` — doymuş/kısmi/boş kenar renk kodlaması
+  - `plot_flow_paths(graph, flow_result, source, sink)` — aktif flow path'leri (kalınlık ∝ flow)
+  - `plot_scc(graph, scc_result, show_condensation)` — her SCC farklı renk; opsiyonel condensation DAG
+  - `plot_topological_order(graph, order, layout='layered')` — soldan sağa hizalama, rank numaraları
+
+- **70 yeni unit test** (toplam 182)
+  - `tests/unit/test_kruskal.py` (14 test)
+  - `tests/unit/test_prim.py` (15 test)
+  - `tests/unit/test_max_flow.py` (14 test)
+  - `tests/unit/test_tarjan_scc.py` (12 test)
+  - `tests/unit/test_topological_sort.py` (15 test)
+
+- **3 yeni örnek dosyası**
+  - `examples/mst_examples.py`
+  - `examples/network_flow_examples.py`
+  - `examples/graph_properties_examples.py`
+
+### Updated
+- `__version__` → `"0.4.0"`
+- Public API: `lg.kruskal_mst`, `lg.prim_mst`, `lg.max_flow`, `lg.tarjan_scc`, `lg.topological_sort` top-level'da kullanılabilir
+- `NotDAGError`, `UndirectedGraphRequiredError` top-level export'a eklendi
+
+---
+
 ## [0.3.3] - 2026-03-31
 
 ### Added

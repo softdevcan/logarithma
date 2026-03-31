@@ -32,7 +32,7 @@ Quick Start:
     >>> result = lg.bidirectional_dijkstra(G, 'A', 'C')
 """
 
-__version__ = "0.3.3"
+__version__ = "0.4.0"
 __author__ = "Can AKYILDIRIM"
 
 from .algorithms import (
@@ -51,6 +51,14 @@ from .algorithms import (
     bellman_ford_path,
     # Bidirectional Dijkstra
     bidirectional_dijkstra,
+    # MST
+    kruskal_mst,
+    prim_mst,
+    # Network Flow
+    max_flow,
+    # Graph Properties
+    tarjan_scc,
+    topological_sort,
     # Exceptions
     GraphError,
     EmptyGraphError,
@@ -58,6 +66,8 @@ from .algorithms import (
     NegativeWeightError,
     NegativeCycleError,
     InvalidModeError,
+    NotDAGError,
+    UndirectedGraphRequiredError,
 )
 from .algorithms.traversal import bfs, bfs_path, dfs, dfs_path, detect_cycle
 
@@ -80,6 +90,14 @@ __all__ = [
     'dfs',
     'dfs_path',
     'detect_cycle',
+    # MST
+    'kruskal_mst',
+    'prim_mst',
+    # Network Flow
+    'max_flow',
+    # Graph Properties
+    'tarjan_scc',
+    'topological_sort',
     # Exceptions
     'GraphError',
     'EmptyGraphError',
@@ -87,6 +105,8 @@ __all__ = [
     'NegativeWeightError',
     'NegativeCycleError',
     'InvalidModeError',
+    'NotDAGError',
+    'UndirectedGraphRequiredError',
     # Metadata
     '__version__',
     '__author__',
