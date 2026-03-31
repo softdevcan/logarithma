@@ -22,6 +22,32 @@ except ImportError:
     PLOTLY_AVAILABLE = False
 
 
+def _get_layout(G: Union[nx.Graph, nx.DiGraph], layout: str) -> Dict:
+    """
+    Return a position dictionary for the given layout name.
+
+    Args:
+        G: NetworkX graph
+        layout: Layout algorithm name ('spring', 'circular', 'kamada_kawai', 'random', 'shell')
+
+    Returns:
+        Dictionary mapping node → (x, y) position
+
+    Raises:
+        ValueError: If layout name is not recognised
+    """
+    layouts = {
+        'spring': nx.spring_layout,
+        'circular': nx.circular_layout,
+        'kamada_kawai': nx.kamada_kawai_layout,
+        'random': nx.random_layout,
+        'shell': nx.shell_layout,
+    }
+    if layout not in layouts:
+        raise ValueError(f"Unknown layout: {layout}. Choose from {list(layouts.keys())}")
+    return layouts[layout](G)
+
+
 def plot_graph(
     G: Union[nx.Graph, nx.DiGraph],
     layout: str = "spring",
@@ -60,20 +86,8 @@ def plot_graph(
     """
     if not MATPLOTLIB_AVAILABLE:
         raise ImportError("matplotlib is required for plotting. Install with: pip install matplotlib")
-    
-    # Get layout
-    layouts = {
-        'spring': nx.spring_layout,
-        'circular': nx.circular_layout,
-        'kamada_kawai': nx.kamada_kawai_layout,
-        'random': nx.random_layout,
-        'shell': nx.shell_layout,
-    }
-    
-    if layout not in layouts:
-        raise ValueError(f"Unknown layout: {layout}. Choose from {list(layouts.keys())}")
-    
-    pos = layouts[layout](G)
+
+    pos = _get_layout(G, layout)
     
     # Create figure
     plt.figure(figsize=figsize)
@@ -140,19 +154,11 @@ def plot_shortest_path(
     """
     if not MATPLOTLIB_AVAILABLE:
         raise ImportError("matplotlib is required. Install with: pip install matplotlib")
-    
-    # Get layout
-    layouts = {
-        'spring': nx.spring_layout,
-        'circular': nx.circular_layout,
-        'kamada_kawai': nx.kamada_kawai_layout,
-        'random': nx.random_layout,
-        'shell': nx.shell_layout,
-    }
-    pos = layouts.get(layout, nx.spring_layout)(G)
-    
+
+    pos = _get_layout(G, layout)
+
     plt.figure(figsize=figsize)
-    
+
     # Draw all nodes and edges in default colors
     nx.draw_networkx_nodes(G, pos, node_size=node_size, node_color='lightblue')
     nx.draw_networkx_edges(G, pos, edge_color='lightgray', width=1.0)
@@ -221,18 +227,11 @@ def plot_traversal(
     """
     if not MATPLOTLIB_AVAILABLE:
         raise ImportError("matplotlib is required. Install with: pip install matplotlib")
-    
-    layouts = {
-        'spring': nx.spring_layout,
-        'circular': nx.circular_layout,
-        'kamada_kawai': nx.kamada_kawai_layout,
-        'random': nx.random_layout,
-        'shell': nx.shell_layout,
-    }
-    pos = layouts.get(layout, nx.spring_layout)(G)
-    
+
+    pos = _get_layout(G, layout)
+
     plt.figure(figsize=figsize)
-    
+
     # Create color map based on visit order
     node_colors = []
     for node in G.nodes():
@@ -300,16 +299,8 @@ def plot_graph_interactive(
     """
     if not PLOTLY_AVAILABLE:
         raise ImportError("plotly is required. Install with: pip install plotly")
-    
-    # Get layout
-    layouts = {
-        'spring': nx.spring_layout,
-        'circular': nx.circular_layout,
-        'kamada_kawai': nx.kamada_kawai_layout,
-        'random': nx.random_layout,
-        'shell': nx.shell_layout,
-    }
-    pos = layouts.get(layout, nx.spring_layout)(G)
+
+    pos = _get_layout(G, layout)
     
     # Create edge trace
     edge_x = []

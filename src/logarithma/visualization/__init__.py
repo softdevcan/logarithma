@@ -45,6 +45,18 @@ from .algorithm_viz import (
     plot_graph_metrics,
 )
 
+from .shortest_path_viz import (
+    plot_astar_search,
+    plot_bellman_ford_result,
+    plot_negative_cycle,
+    plot_bidirectional_search,
+    plot_shortest_path_comparison,
+)
+
+from .traversal_viz import (
+    plot_dfs_tree,
+)
+
 __all__ = [
     # Graph plotting
     'plot_graph',
@@ -58,4 +70,12 @@ __all__ = [
     'plot_path_comparison',
     'plot_degree_distribution',
     'plot_graph_metrics',
+    # Algorithm-specific shortest path visualization
+    'plot_astar_search',
+    'plot_bellman_ford_result',
+    'plot_negative_cycle',
+    'plot_bidirectional_search',
+    'plot_shortest_path_comparison',
+    # Traversal-specific visualization
+    'plot_dfs_tree',
 ]

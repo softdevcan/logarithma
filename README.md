@@ -130,6 +130,67 @@ print(graph_summary(G))
 # {'nodes': 100, 'edges': 491, 'density': 0.099, 'avg_degree': 9.82, ...}
 ```
 
+### Visualization
+
+16 visualization functions — requires `pip install logarithma[viz]`.
+
+**General graph plotting:**
+```python
+from logarithma.visualization import plot_graph, plot_shortest_path, plot_traversal
+
+plot_graph(G, layout='spring', title='My Graph')
+plot_shortest_path(G, path, title='Shortest Path')
+plot_traversal(G, visited_order, title='BFS Traversal')
+```
+
+**Algorithm-specific visualizations:**
+```python
+from logarithma.visualization import (
+    plot_astar_search,             # expanded nodes, open set, heuristic values
+    plot_bellman_ford_result,      # negative edges (dashed red), distance labels
+    plot_negative_cycle,           # cycle nodes/edges highlighted in red
+    plot_bidirectional_search,     # forward/backward frontiers, meeting point
+    plot_shortest_path_comparison, # Dijkstra vs A* vs BiDijkstra side by side
+    plot_dfs_tree,                 # tree/back/cross edges, discovery-finish times
+)
+
+# A* — show which nodes were expanded vs skipped
+from logarithma.algorithms.shortest_path.astar import manhattan_heuristic
+pos = {node: node for node in G.nodes()}   # grid graph positions
+plot_astar_search(G, source=(0,0), target=(4,4),
+                  heuristic=manhattan_heuristic(pos), show_heuristic=True)
+
+# DFS tree — edge classification + discovery/finish timestamps
+plot_dfs_tree(G, source='A', show_discovery_finish=True, show_depth=True)
+
+# Side-by-side comparison
+plot_shortest_path_comparison(G, source=0, target=33)
+```
+
+## Error Handling
+
+All algorithms raise descriptive exceptions from a unified hierarchy:
+
+```python
+from logarithma.algorithms.exceptions import (
+    GraphError,          # base class for all logarithma errors
+    EmptyGraphError,     # graph has no nodes
+    NodeNotFoundError,   # source or target not in graph (.node, .role attributes)
+    NegativeWeightError, # negative edge in Dijkstra/A*/BiDijkstra (.u, .v, .weight)
+    NegativeCycleError,  # Bellman-Ford detected a cycle (.cycle = list of nodes)
+    InvalidModeError,    # invalid mode string (e.g. dfs mode) (.mode, .valid_modes)
+)
+
+try:
+    result = bellman_ford(G, source='A')
+except NegativeCycleError as e:
+    print(e.cycle)        # ['A', 'B', 'C', 'A']
+except NodeNotFoundError as e:
+    print(e.node, e.role) # 'Z', 'source'
+```
+
+All exceptions are subclasses of both `GraphError` and `ValueError`, so existing `except ValueError` blocks remain compatible.
+
 ## Complexity Reference
 
 | Algorithm | Time | Negative Weights |

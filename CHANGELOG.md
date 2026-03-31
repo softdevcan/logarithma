@@ -5,6 +5,61 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.3] - 2026-03-31
+
+### Added
+- **Algorithm-specific visualization module** (`src/logarithma/visualization/shortest_path_viz.py`)
+  - `plot_astar_search` — expanded (closed set) / open set node renk kodlaması, opsiyonel heuristic değer etiketleri
+  - `plot_bellman_ford_result` — negatif kenarlar kesik kırmızı, her node'da mesafe etiketi, hedef path highlight
+  - `plot_negative_cycle` — döngü node/kenarları kalın kırmızı, toplam döngü ağırlığı başlıkta
+  - `plot_bidirectional_search` — forward (mavi) / backward (yeşil) frontier, buluşma noktası (sarı), overlap (mor)
+  - `plot_shortest_path_comparison` — Dijkstra / A\* / Bidirectional Dijkstra yan yana subplot karşılaştırma
+  - Dahili `_astar_trace`, `_bidirectional_trace` helper'ları (public API'ye dokunulmadan step-by-step veri toplar)
+
+- **DFS tree visualization** (`src/logarithma/visualization/traversal_viz.py`)
+  - `plot_dfs_tree` — tree edges (siyah), back edges (kesik kırmızı), cross/forward edges (kesik gri, DiGraph)
+  - Node rengi: source=yeşil, döngü node'u=kırmızı, diğerleri derinliğe göre mavi gradyan
+  - `show_discovery_finish=True`: discovery/finish zaman damgaları (parenthesis teoremi)
+  - `show_depth=True`: recursion derinliği etiketi
+  - Ziyaret sırası altta metin olarak gösterilir
+
+- **`_get_layout()` helper** (`graph_plotter.py`)
+  - Tüm visualization dosyaları ortak layout dict'i bu helper üzerinden kullanır (DRY)
+
+- **Yeni örnek dosyası** (`examples/visualization/04_algorithm_specific_viz.py`)
+  - 6 demo: A\* search, Bellman-Ford, negatif döngü, BiDijkstra, karşılaştırma, DFS tree
+
+### Updated
+- `graph_plotter.py` — `plot_graph`, `plot_shortest_path`, `plot_traversal`, `plot_graph_interactive` fonksiyonlarındaki tekrar eden layout dict'leri kaldırıldı, `_get_layout()` kullanılıyor
+- `visualization/__init__.py` — 6 yeni fonksiyon export'a eklendi (toplam 16 fonksiyon)
+- `CLAUDE.md`, `README.md`, `docs/ALGORITHM_ROADMAP.md` — visualization ve error handling dokümantasyonu güncellendi
+
+## [0.3.2] - 2026-03-30
+
+### Added
+- **Centralized error handling** (`src/logarithma/algorithms/exceptions.py`)
+  - Exception hiyerarşisi: `GraphError` (base) → `EmptyGraphError`, `NodeNotFoundError`, `NegativeWeightError`, `NegativeCycleError`, `InvalidModeError`
+  - Tüm exception'lar hem `GraphError` hem `ValueError` subclass'ı — geriye dönük uyumluluk korundu
+  - `NegativeCycleError.cycle` attribute ile döngü node listesi taşınıyor
+  - 4 validator helper: `validate_graph`, `validate_source`, `validate_target`, `validate_weight`
+  - Tüm algoritmalar (Dijkstra, A\*, Bellman-Ford, BiDijkstra, BFS, DFS) bu yapıya taşındı
+
+- **Yeni örnek dosyaları** (`examples/basic_usage/`)
+  - `04_astar_examples.py` — A\* heuristic karşılaştırması, grid pathfinding, stats
+  - `05_bellman_ford_examples.py` — negatif ağırlıklar, NegativeCycleError kullanımı
+  - `06_bidirectional_dijkstra_examples.py` — büyük graf benchmark, BiDijkstra vs Dijkstra
+
+### Updated
+- Tüm algoritma modülleri exception import'ları `exceptions.py`'ye taşındı
+- `__init__.py` — tüm exception sınıfları top-level'da export ediliyor
+- `index.html` versiyon güncellendi
+
+## [0.3.1] - 2026-03-30
+
+### Fixed
+- PyPI badge URL README.md'de güncellendi
+- GitHub Pages `index.html` versiyon etiketi v0.3.1'e güncellendi
+
 ## [0.3.0] - 2026-03-30
 
 ### Added
