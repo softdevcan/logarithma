@@ -39,7 +39,8 @@ def bfs(
         Unreachable vertices are not included in the result.
 
     Raises:
-        ValueError: If source vertex not in graph or graph is empty
+        EmptyGraphError:    If the graph has no nodes.
+        NodeNotFoundError:  If source is not in the graph.
 
     Time Complexity:
         O(V + E) where V = vertices, E = edges
@@ -100,7 +101,8 @@ def bfs_path(
                       Empty list for unreachable vertices
 
     Raises:
-        ValueError: If source or target vertex not in graph
+        EmptyGraphError:    If the graph has no nodes.
+        NodeNotFoundError:  If source or target is not in the graph.
 
     Time Complexity:
         O(V + E), may be faster with target specified

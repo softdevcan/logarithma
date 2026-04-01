@@ -39,7 +39,9 @@ def dfs(
         List of vertices in DFS visit order
 
     Raises:
-        ValueError: If source vertex not in graph or invalid mode
+        EmptyGraphError:    If the graph has no nodes.
+        NodeNotFoundError:  If source is not in the graph.
+        InvalidModeError:   If mode is not 'recursive' or 'iterative'.
 
     Time Complexity:
         O(V + E) where V = vertices, E = edges
@@ -132,7 +134,8 @@ def dfs_path(
         or None if no path exists
 
     Raises:
-        ValueError: If source or target vertex not in graph
+        EmptyGraphError:    If the graph has no nodes.
+        NodeNotFoundError:  If source or target is not in the graph.
 
     Time Complexity:
         O(V + E)

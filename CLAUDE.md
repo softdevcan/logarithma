@@ -365,9 +365,140 @@ Makale PDF'i: `docs/Breaking the Sorting Barrier for Directed Single-Source Shor
 
 ---
 
+## Yeni Algoritma Ekleme Rehberi
+
+Projeye yeni bir algoritma eklerken aşağıdaki adımlar sırayla uygulanmalıdır.
+
+### 1. Dosya Yerleşimi
+
+İlgili alt pakete yeni `.py` dosyası oluştur:
+- Shortest path → `src/logarithma/algorithms/shortest_path/`
+- Traversal → `src/logarithma/algorithms/traversal/`
+- MST → `src/logarithma/algorithms/mst/`
+- Yeni kategori → `src/logarithma/algorithms/<kategori>/`
+
+### 2. Error Handling Kuralları
+
+**Asla `ValueError` / `TypeError` doğrudan raise etme.** Her zaman `exceptions.py` içindeki validator helper'ları kullan:
+
+```python
+from logarithma.algorithms.exceptions import (
+    validate_graph,       # fonksiyon başında her zaman çağrılır
+    validate_source,      # source parametresi varsa
+    validate_target,      # target parametresi varsa
+    validate_weight,      # negatif ağırlık kabul etmiyorsa (kenar döngüsü içinde)
+    validate_undirected,  # undirected-only algoritmalarda
+)
+```
+
+**Fonksiyon başı şablonu:**
+```python
+def yeni_algoritma(graph, source, target=None):
+    validate_graph(graph, "yeni_algoritma")
+    validate_source(graph, source)
+    if target is not None:
+        validate_target(graph, target)
+    # ... algoritma gövdesi
+```
+
+Mevcut exception'larla karşılanamayan yeni bir hata durumu varsa `exceptions.py`'ye yeni sınıf eklenir; algoritma dosyasına özel exception yazılmaz.
+
+### 3. Docstring Raises Bölümü
+
+Docstring'deki `Raises:` bölümünde gerçekte fırlatılan exception class adları yazılır — `ValueError` veya `TypeError` yazılmaz:
+
+```python
+    Raises:
+        EmptyGraphError:     If the graph has no nodes.
+        NodeNotFoundError:   If source or target is not in the graph.
+        NegativeWeightError: If any edge weight is negative.
+```
+
+### 4. Public API Export
+
+Yeni fonksiyon üç yerde export edilmeli:
+1. `src/logarithma/algorithms/<alt_paket>/__init__.py` — alt paket export
+2. `src/logarithma/algorithms/__init__.py` — algorithms paketi export
+3. `src/logarithma/__init__.py` — top-level `lg.` erişimi + `__all__`
+
+Yeni exception eklenirse aynı üç dosyaya o da eklenir.
+
+### 5. Test
+
+`tests/unit/test_<algoritma>.py` dosyası oluşturulur. Minimum test kapsamı:
+- Normal çalışma (directed + undirected)
+- `EmptyGraphError` (boş graf)
+- `NodeNotFoundError` (geçersiz source/target)
+- Algoritmaya özgü hatalar (NegativeWeightError, NegativeCycleError vb.)
+- Edge case'ler (tek node, bağlantısız graf, erişilemeyen target)
+
+### 6. CLAUDE.md Güncellemesi
+
+Algoritma eklendikten sonra bu dosyada güncellenmesi gereken yerler → bir sonraki bölüme bak.
+
+---
+
+## Versiyon Güncelleme Kontrol Listesi
+
+Yeni bir versiyon çıkarılırken veya büyük bir özellik tamamlanırken kontrol edilmesi gereken her yer:
+
+### Kod Tarafı
+
+- [ ] `pyproject.toml` — `version` alanı
+- [ ] `src/logarithma/__init__.py` — `__version__` sabiti
+- [ ] `index.html` — nav badge, hero badge, test sayısı (aşağıda detay)
+
+### index.html — Güncellenecek Yerler
+
+| Yer | Ne Güncellenir |
+|-----|---------------|
+| Nav badge (`nav-badge`) | Versiyon numarası |
+| Hero badge | Versiyon numarası + test sayısı |
+| Algorithms grid (`algo-grid`) | Yeni algoritma kartları |
+| Sidebar | Yeni section linkleri |
+| Nav links | Yeni bölüm linkleri (alan genişlerse) |
+| Yeni `<section>` | Algoritma dokümantasyonu + kod örnekleri |
+| Complexity tablosu | Yeni algoritma satırları |
+| Changelog timeline | Yeni version item — önceki "current" → "done" yapılır |
+| Roadmap timeline | Tamamlanan versiyon "done", yeni hedef "current" yapılır |
+
+### CLAUDE.md — Güncellenecek Yerler
+
+| Bölüm | Ne Güncellenir |
+|-------|---------------|
+| "Mevcut Durum" başlığı | Tarih ve versiyon |
+| "Implement Edilmiş Özellikler" tablosu | Yeni modül/fonksiyon satırı |
+| "Unit test toplamı" | Güncel test sayısı |
+| "Henüz Yapılmamışlar" | Tamamlananlar çıkarılır |
+| "Proje Yapısı" ağacı | Yeni dosyalar eklenir |
+| "Public API" bloğu | Yeni fonksiyonlar / exception'lar |
+| "Roadmap Özeti" tablosu | Durum güncellenir |
+| "Bilinen Sorunlar" | Çözülenler çıkarılır, yeniler eklenir |
+
+### Doğrulama Adımları
+
+```bash
+# 1. Tüm testler geçmeli
+pytest tests/unit/
+
+# 2. Linting temiz olmalı
+black src/ --check
+isort src/ --check
+flake8 src/
+
+# 3. Yeni fonksiyonlar import edilebilmeli
+python -c "import logarithma as lg; print(lg.__version__)"
+
+# 4. Exception'lar top-level'dan erişilebilmeli
+python -c "from logarithma import GraphError, NegativeCycleError, NotDAGError"
+```
+
+---
+
 ## Bu Dosya Hakkında
 
 CLAUDE.md proje süresince güncel tutulmalıdır. Her önemli değişiklikten sonra:
 - Tamamlanan özellikler "Mevcut Durum" tablosuna işlenir
 - Yeni bilinen sorunlar eklenir
 - Roadmap durumu güncellenir
+- "Versiyon Güncelleme Kontrol Listesi" kapsamında tüm yerler kontrol edilir

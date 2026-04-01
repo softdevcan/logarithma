@@ -89,7 +89,8 @@ def bellman_ford(
                             path (for path reconstruction). Source has None.
 
     Raises:
-        ValueError:         If graph is empty or source is not in the graph.
+        EmptyGraphError:    If the graph has no nodes.
+        NodeNotFoundError:  If source is not in the graph.
         NegativeCycleError: If a negative-weight cycle reachable from source is
                             detected. The exception carries a `cycle` attribute
                             with the reconstructed cycle nodes.
@@ -180,7 +181,8 @@ def bellman_ford_path(
             'path':     List[node] — shortest path, or [] if unreachable.
 
     Raises:
-        ValueError:         On empty graph or missing source/target.
+        EmptyGraphError:    If the graph has no nodes.
+        NodeNotFoundError:  If source or target is not in the graph.
         NegativeCycleError: If a negative-weight cycle reachable from source
                             is detected.
 

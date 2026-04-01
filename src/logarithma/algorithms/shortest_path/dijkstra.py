@@ -39,8 +39,9 @@ def dijkstra(
         Unreachable vertices have distance infinity.
 
     Raises:
-        ValueError: If source vertex not in graph or graph is empty
-        ValueError: If negative edge weights are detected
+        EmptyGraphError:      If the graph has no nodes.
+        NodeNotFoundError:    If source is not in the graph.
+        NegativeWeightError:  If any edge weight is negative.
 
     Time Complexity:
         O(E + V log V) where E = number of edges, V = number of vertices
@@ -124,8 +125,9 @@ def dijkstra_with_path(
                       Empty list for unreachable vertices
 
     Raises:
-        ValueError: If source or target vertex not in graph
-        ValueError: If graph is empty or has negative weights
+        EmptyGraphError:      If the graph has no nodes.
+        NodeNotFoundError:    If source or target is not in the graph.
+        NegativeWeightError:  If any edge weight is negative.
 
     Time Complexity:
         O(E + V log V) for all paths, may be faster with target specified

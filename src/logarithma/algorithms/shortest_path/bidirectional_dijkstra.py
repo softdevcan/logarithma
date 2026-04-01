@@ -87,8 +87,9 @@ def bidirectional_dijkstra(
             'path':     List[node] — optimal path, or [] if unreachable.
 
     Raises:
-        ValueError: If graph is empty, source/target not in graph, or a
-                    negative edge weight is encountered.
+        EmptyGraphError:     If the graph has no nodes.
+        NodeNotFoundError:   If source or target is not in the graph.
+        NegativeWeightError: If any edge weight is negative.
 
     Time Complexity:
         O((V + E) log V) worst case; typically ~2× faster than standard

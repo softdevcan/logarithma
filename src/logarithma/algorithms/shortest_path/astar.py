@@ -152,8 +152,9 @@ def astar(
                         or [] if target is unreachable.
 
     Raises:
-        ValueError: If the graph is empty, or source/target not in graph,
-                    or a negative edge weight is found.
+        EmptyGraphError:     If the graph has no nodes.
+        NodeNotFoundError:   If source or target is not in the graph.
+        NegativeWeightError: If any edge weight is negative.
 
     Time Complexity:
         O(b^d) worst case. With an admissible and consistent heuristic the
@@ -264,6 +265,11 @@ def astar_with_stats(
 
     Returns:
         Dict with keys: 'distance', 'path', 'nodes_expanded', 'nodes_generated'.
+
+    Raises:
+        EmptyGraphError:     If the graph has no nodes.
+        NodeNotFoundError:   If source or target is not in the graph.
+        NegativeWeightError: If any edge weight is negative.
 
     Example:
         >>> result = astar_with_stats(G, 'A', 'D', heuristic=h)
