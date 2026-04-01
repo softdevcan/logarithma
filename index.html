@@ -293,12 +293,14 @@
   <a class="nav-brand" href="#">
     <div class="logo">λ</div>
     Logarithma
-    <span class="nav-badge">v0.3.2</span>
+    <span class="nav-badge">v0.4.0</span>
   </a>
   <div class="nav-links">
     <a href="#installation">Installation</a>
     <a href="#quickstart">Quick Start</a>
     <a href="#algorithms">Algorithms</a>
+    <a href="#mst">MST</a>
+    <a href="#network-flow">Flow</a>
     <a href="#changelog">Changelog</a>
   </div>
   <a class="btn-github" href="https://github.com/softdevcan/logarithma" target="_blank">
@@ -333,6 +335,18 @@
       <a href="#dfs">DFS</a>
     </div>
     <div class="sidebar-group">
+      <div class="sidebar-label">MST</div>
+      <a href="#mst">Kruskal &amp; Prim</a>
+    </div>
+    <div class="sidebar-group">
+      <div class="sidebar-label">Network Flow</div>
+      <a href="#network-flow">Max Flow</a>
+    </div>
+    <div class="sidebar-group">
+      <div class="sidebar-label">Graph Properties</div>
+      <a href="#graph-properties">SCC &amp; Topo Sort</a>
+    </div>
+    <div class="sidebar-group">
       <div class="sidebar-label">Utilities</div>
       <a href="#utils">Utils Module</a>
     </div>
@@ -357,10 +371,10 @@
         Built on NetworkX. Production-ready, fully typed, comprehensively tested.
       </p>
       <div class="hero-badges">
-        <span class="badge badge-blue">v0.3.2</span>
+        <span class="badge badge-blue">v0.4.0</span>
         <span class="badge badge-green">Python 3.8+</span>
         <span class="badge badge-yellow">MIT License</span>
-        <span class="badge badge-blue">113 Tests</span>
+        <span class="badge badge-blue">182 Tests</span>
         <span class="badge badge-green">Active Development</span>
       </div>
       <div class="hero-actions">
@@ -434,7 +448,23 @@ print(result['distances'])  # {'X': 0, 'Y': 4, 'Z': 2}
 
 # BFS traversal
 visited = lg.bfs(G, 'A')
-print(visited)  # {'A': 0, 'B': 1, 'C': 1, 'D': 2}</code></pre>
+print(visited)  # {'A': 0, 'B': 1, 'C': 1, 'D': 2}
+
+# Kruskal MST
+mst = lg.kruskal_mst(G)
+print(mst['total_weight'])   # minimum spanning tree weight
+
+# Max Flow
+DG = nx.DiGraph()
+DG.add_edge('S', 'A', capacity=10)
+DG.add_edge('A', 'T', capacity=10)
+flow = lg.max_flow(DG, 'S', 'T')
+print(flow['max_flow_value'])  # 10
+
+# Tarjan SCC
+DG2 = nx.DiGraph([('A','B'), ('B','C'), ('C','A')])
+sccs = lg.tarjan_scc(DG2)
+print(sccs)   # [['A', 'B', 'C']]</code></pre>
       </div>
     </section>
 
@@ -471,6 +501,31 @@ print(visited)  # {'A': 0, 'B': 1, 'C': 1, 'D': 2}</code></pre>
           <div class="algo-card-name">DFS</div>
           <div class="algo-card-complexity">O(V + E)</div>
           <div class="algo-card-desc">Depth-first traversal. Cycle detection. Recursive &amp; iterative modes.</div>
+        </div>
+        <div class="algo-card">
+          <div class="algo-card-name">Kruskal MST</div>
+          <div class="algo-card-complexity">O(E log E)</div>
+          <div class="algo-card-desc">Minimum Spanning Tree via Union-Find. Undirected graphs.</div>
+        </div>
+        <div class="algo-card">
+          <div class="algo-card-name">Prim MST</div>
+          <div class="algo-card-complexity">O(E + V log V)</div>
+          <div class="algo-card-desc">MST via greedy min-heap expansion. Undirected graphs.</div>
+        </div>
+        <div class="algo-card">
+          <div class="algo-card-name">Max Flow (Edmonds-Karp)</div>
+          <div class="algo-card-complexity">O(V · E²)</div>
+          <div class="algo-card-desc">Maximum flow via BFS-based augmenting paths. Directed capacity graphs.</div>
+        </div>
+        <div class="algo-card">
+          <div class="algo-card-name">Tarjan SCC</div>
+          <div class="algo-card-complexity">O(V + E)</div>
+          <div class="algo-card-desc">Strongly connected components. Iterative DFS-based implementation.</div>
+        </div>
+        <div class="algo-card">
+          <div class="algo-card-name">Topological Sort</div>
+          <div class="algo-card-complexity">O(V + E)</div>
+          <div class="algo-card-desc">Linear ordering of DAG vertices. DFS and Kahn's algorithm support.</div>
         </div>
       </div>
     </section>
@@ -818,6 +873,162 @@ print(has_cycle)  # False</code></pre>
       </div>
     </section>
 
+    <!-- MST -->
+    <section id="mst">
+      <h2>MST — Minimum Spanning Tree</h2>
+      <p>
+        Both algorithms find a minimum spanning tree of an <strong>undirected weighted graph</strong>.
+        Passing a directed graph raises <code>UndirectedGraphRequiredError</code>.
+      </p>
+
+      <h3>kruskal_mst(graph)</h3>
+      <p>Union-Find based greedy approach. Sorts all edges and adds the cheapest that doesn't form a cycle.</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">python</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="language-python">import logarithma as lg
+import networkx as nx
+
+G = nx.Graph()
+G.add_edge('A', 'B', weight=4)
+G.add_edge('A', 'C', weight=2)
+G.add_edge('B', 'C', weight=1)
+G.add_edge('B', 'D', weight=5)
+G.add_edge('C', 'D', weight=8)
+G.add_edge('C', 'E', weight=10)
+G.add_edge('D', 'E', weight=2)
+
+result = lg.kruskal_mst(G)
+print(result['total_weight'])   # minimum total weight
+print(result['edges'])          # list of (u, v, weight) tuples
+print(result['mst_graph'])      # NetworkX Graph of the MST
+
+# Error on directed graphs
+from logarithma import UndirectedGraphRequiredError
+try:
+    lg.kruskal_mst(nx.DiGraph())
+except UndirectedGraphRequiredError as e:
+    print(e)</code></pre>
+      </div>
+
+      <h3>prim_mst(graph, start=None)</h3>
+      <p>Min-heap greedy expansion. Grows the MST from a starting node one edge at a time.</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">python</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="language-python">result = lg.prim_mst(G, start='A')
+print(result['total_weight'])   # same as Kruskal on same graph
+print(result['edges'])          # list of (u, v, weight) tuples
+
+# start=None → random start node
+result = lg.prim_mst(G)</code></pre>
+      </div>
+    </section>
+
+    <!-- NETWORK FLOW -->
+    <section id="network-flow">
+      <h2>Network Flow</h2>
+      <p>
+        Computes maximum flow through a directed capacity graph using the
+        <strong>Edmonds-Karp algorithm</strong> (BFS-based Ford-Fulkerson).
+      </p>
+
+      <h3>max_flow(graph, source, sink)</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">python</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="language-python">import logarithma as lg
+import networkx as nx
+
+G = nx.DiGraph()
+G.add_edge('S', 'A', capacity=10)
+G.add_edge('S', 'B', capacity=10)
+G.add_edge('A', 'C', capacity=10)
+G.add_edge('B', 'C', capacity=10)
+G.add_edge('A', 'T', capacity=10)
+G.add_edge('C', 'T', capacity=10)
+
+result = lg.max_flow(G, 'S', 'T')
+print(result['max_flow_value'])    # 20
+print(result['flow_dict'])         # {u: {v: flow_amount, ...}, ...}
+print(result['method'])            # 'edmonds_karp'
+
+# Custom capacity attribute name
+G2 = nx.DiGraph()
+G2.add_edge('X', 'Y', cap=5)
+result = lg.max_flow(G2, 'X', 'Y', capacity='cap')</code></pre>
+      </div>
+    </section>
+
+    <!-- GRAPH PROPERTIES -->
+    <section id="graph-properties">
+      <h2>Graph Properties</h2>
+
+      <h3>tarjan_scc(graph)</h3>
+      <p>
+        Finds all <strong>strongly connected components</strong> of a directed graph.
+        Iterative implementation — no recursion limit issues on large graphs.
+      </p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">python</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="language-python">import logarithma as lg
+import networkx as nx
+
+DG = nx.DiGraph()
+DG.add_edges_from([('A','B'), ('B','C'), ('C','A'),   # SCC 1
+                   ('C','D'), ('D','E'), ('E','D')])   # SCC 2 (D-E)
+
+sccs = lg.tarjan_scc(DG)
+print(sccs)   # [['A', 'B', 'C'], ['D', 'E']]
+
+# Condensation DAG — each SCC as a single node
+result = lg.tarjan_scc(DG)
+for i, scc in enumerate(result):
+    print(f"SCC {i}: {scc}")</code></pre>
+      </div>
+
+      <h3>topological_sort(graph, method='dfs')</h3>
+      <p>
+        Returns a linear ordering of vertices of a <strong>DAG</strong> such that every directed
+        edge <code>u → v</code> appears before <code>v</code> in the ordering.
+        Raises <code>NotDAGError</code> if the graph has a cycle.
+      </p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">python</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="language-python">from logarithma import topological_sort, NotDAGError
+import networkx as nx
+
+DAG = nx.DiGraph()
+DAG.add_edges_from([('compile', 'link'), ('link', 'test'),
+                    ('compile', 'lint'), ('lint', 'test')])
+
+order = topological_sort(DAG)
+print(order)   # e.g. ['compile', 'lint', 'link', 'test']
+
+# Kahn's algorithm variant
+order = topological_sort(DAG, method='kahn')
+
+# Raises on cyclic graph
+G_cycle = nx.DiGraph([('A','B'), ('B','C'), ('C','A')])
+try:
+    topological_sort(G_cycle)
+except NotDAGError as e:
+    print("Cycle found:", e.cycle)</code></pre>
+      </div>
+    </section>
+
     <!-- UTILS -->
     <section id="utils">
       <h2>Utils Module</h2>
@@ -974,6 +1185,41 @@ G3 = from_edge_list(edges)</code></pre>
               <td>Traversal, cycle detection</td>
             </tr>
             <tr>
+              <td><strong>Kruskal MST</strong></td>
+              <td><code>O(E log E)</code></td>
+              <td><code>O(V)</code></td>
+              <td>n/a</td>
+              <td>Minimum spanning tree</td>
+            </tr>
+            <tr>
+              <td><strong>Prim MST</strong></td>
+              <td><code>O(E + V log V)</code></td>
+              <td><code>O(V)</code></td>
+              <td>n/a</td>
+              <td>Minimum spanning tree</td>
+            </tr>
+            <tr>
+              <td><strong>Max Flow (Edmonds-Karp)</strong></td>
+              <td><code>O(V · E²)</code></td>
+              <td><code>O(V + E)</code></td>
+              <td>n/a</td>
+              <td>Maximum network flow</td>
+            </tr>
+            <tr>
+              <td><strong>Tarjan SCC</strong></td>
+              <td><code>O(V + E)</code></td>
+              <td><code>O(V)</code></td>
+              <td>n/a</td>
+              <td>Strongly connected components</td>
+            </tr>
+            <tr>
+              <td><strong>Topological Sort</strong></td>
+              <td><code>O(V + E)</code></td>
+              <td><code>O(V)</code></td>
+              <td>n/a</td>
+              <td>DAG linear ordering</td>
+            </tr>
+            <tr>
               <td><strong>Breaking Barrier SSSP</strong> 🎯</td>
               <td><code>O(m + n log log n)</code></td>
               <td><code>O(n)</code></td>
@@ -1004,14 +1250,34 @@ G3 = from_edge_list(edges)</code></pre>
             <div class="timeline-line"></div>
           </div>
           <div class="timeline-content">
-            <div class="timeline-version">v0.3.2 — <span style="color:var(--accent)">Current</span></div>
+            <div class="timeline-version">v0.4.0 — <span style="color:var(--accent)">Current</span></div>
+            <div class="timeline-date">April 2026</div>
+            <ul class="timeline-items">
+              <li>Kruskal &amp; Prim Minimum Spanning Tree</li>
+              <li>Max Flow — Edmonds-Karp (BFS-based Ford-Fulkerson)</li>
+              <li>Tarjan SCC — iterative O(V+E) implementation</li>
+              <li>Topological Sort — DFS and Kahn's algorithm</li>
+              <li>Centralized exception hierarchy (7 exception classes + 5 validators)</li>
+              <li>Algorithm-specific visualization: MST steps, flow network, SCC, topo order</li>
+              <li>182 unit tests total</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-dot-col">
+            <div class="timeline-dot done"></div>
+            <div class="timeline-line"></div>
+          </div>
+          <div class="timeline-content">
+            <div class="timeline-version">v0.3.x</div>
             <div class="timeline-date">March 2026</div>
             <ul class="timeline-items">
               <li>A* algorithm with Euclidean, Manhattan, Haversine heuristics</li>
               <li>Bellman-Ford with negative-weight support and cycle detection</li>
               <li>Bidirectional Dijkstra (~2× speedup for point-to-point)</li>
+              <li>Algorithm-specific visualizations: A*, Bellman-Ford, BiDijkstra, DFS tree</li>
               <li>Fixed <code>dijkstra_with_path</code> for unreachable nodes</li>
-              <li>113 unit tests total</li>
             </ul>
           </div>
         </div>
@@ -1058,24 +1324,25 @@ G3 = from_edge_list(edges)</code></pre>
 
         <div class="timeline-item">
           <div class="timeline-dot-col">
-            <div class="timeline-dot future"></div>
+            <div class="timeline-dot done"></div>
             <div class="timeline-line"></div>
           </div>
           <div class="timeline-content">
-            <div class="timeline-version">v0.4.0</div>
-            <div class="timeline-date">Planned — April 2026</div>
+            <div class="timeline-version">v0.4.0 — <span style="color:var(--accent2)">Released</span></div>
+            <div class="timeline-date">April 2026</div>
             <ul class="timeline-items">
-              <li>Kruskal &amp; Prim Minimum Spanning Tree</li>
-              <li>Floyd-Warshall all-pairs shortest path</li>
-              <li>Tarjan SCC, Topological Sort</li>
-              <li>Ford-Fulkerson network flow</li>
+              <li>Kruskal &amp; Prim Minimum Spanning Tree ✓</li>
+              <li>Max Flow — Edmonds-Karp ✓</li>
+              <li>Tarjan SCC, Topological Sort ✓</li>
+              <li>Centralized exception system ✓</li>
+              <li>Extended visualization module ✓</li>
             </ul>
           </div>
         </div>
 
         <div class="timeline-item">
           <div class="timeline-dot-col">
-            <div class="timeline-dot future" style="background:var(--accent);box-shadow:0 0 0 4px rgba(88,166,255,.15)"></div>
+            <div class="timeline-dot current"></div>
             <div class="timeline-line"></div>
           </div>
           <div class="timeline-content">
