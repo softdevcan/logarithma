@@ -13,8 +13,8 @@ Available algorithms:
     bellman_ford_path     — Bellman-Ford with path reconstruction
     bidirectional_dijkstra— O(E + V log V), ~2x faster for point-to-point
 
-Planned:
-    breaking_barrier_sssp — O(m + n log log n), directed SSSP (Duan et al. 2025)
+Available (continued):
+    breaking_barrier_sssp — O(m log^{2/3} n), directed SSSP (Duan et al. 2025)
 """
 
 from .dijkstra import dijkstra, dijkstra_with_path
@@ -36,6 +36,7 @@ from logarithma.algorithms.exceptions import (
     InvalidModeError,
 )
 from .bidirectional_dijkstra import bidirectional_dijkstra
+from .breaking_barrier import breaking_barrier_sssp
 
 __all__ = [
     # Dijkstra
@@ -53,6 +54,8 @@ __all__ = [
     'bellman_ford_path',
     # Bidirectional Dijkstra
     'bidirectional_dijkstra',
+    # Breaking the Sorting Barrier
+    'breaking_barrier_sssp',
     # Exceptions
     'GraphError',
     'EmptyGraphError',

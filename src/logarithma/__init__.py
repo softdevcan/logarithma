@@ -51,6 +51,8 @@ from .algorithms import (
     bellman_ford_path,
     # Bidirectional Dijkstra
     bidirectional_dijkstra,
+    # Breaking the Sorting Barrier
+    breaking_barrier_sssp,
     # MST
     kruskal_mst,
     prim_mst,
@@ -84,6 +86,7 @@ __all__ = [
     'bellman_ford',
     'bellman_ford_path',
     'bidirectional_dijkstra',
+    'breaking_barrier_sssp',
     # Traversal
     'bfs',
     'bfs_path',
