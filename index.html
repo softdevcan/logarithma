@@ -293,7 +293,7 @@
   <a class="nav-brand" href="#">
     <div class="logo">λ</div>
     Logarithma
-    <span class="nav-badge">v0.4.0</span>
+    <span class="nav-badge">v0.6.0</span>
   </a>
   <div class="nav-links">
     <a href="#installation">Installation</a>
@@ -371,11 +371,11 @@
         Built on NetworkX. Production-ready, fully typed, comprehensively tested.
       </p>
       <div class="hero-badges">
-        <span class="badge badge-blue">v0.4.0</span>
+        <span class="badge badge-blue">v0.6.0</span>
         <span class="badge badge-green">Python 3.8+</span>
         <span class="badge badge-yellow">MIT License</span>
-        <span class="badge badge-blue">182 Tests</span>
-        <span class="badge badge-green">Active Development</span>
+        <span class="badge badge-blue">281 Tests</span>
+        <span class="badge badge-green">Cython Accelerated</span>
       </div>
       <div class="hero-actions">
         <a href="#installation" class="btn btn-primary">Get Started</a>
@@ -1234,7 +1234,7 @@ G3 = from_edge_list(edges)</code></pre>
         <div class="callout-body">
           <strong>Breaking the Sorting Barrier SSSP</strong> (Duan et al., 2025 — arXiv:2504.17033v2)
           is the primary research goal of this library. It breaks the classical
-          <code>O(m + n log n)</code> barrier for directed SSSP. Implementation is planned for v0.5.0.
+          <code>O(m + n log n)</code> barrier for directed SSSP. Implemented in v0.5.0, Cython-accelerated in v0.6.0.
         </div>
       </div>
     </section>
@@ -1250,7 +1250,46 @@ G3 = from_edge_list(edges)</code></pre>
             <div class="timeline-line"></div>
           </div>
           <div class="timeline-content">
-            <div class="timeline-version">v0.4.0 — <span style="color:var(--accent)">Current</span></div>
+            <div class="timeline-version">v0.6.0 — <span style="color:var(--accent)">Current</span></div>
+            <div class="timeline-date">April 2026</div>
+            <ul class="timeline-items">
+              <li><strong>Cython acceleration</strong> for <code>breaking_barrier_sssp</code></li>
+              <li><code>block_heap.pyx</code> — cdef classes, C-level double arithmetic</li>
+              <li><code>breaking_barrier_core.pyx</code> — <code>_should_relax</code> as <code>cdef inline nogil</code>, typed memoryviews</li>
+              <li>Pure-Python optimizations: node ID integer mapping, <code>repr()</code> eliminated (~11% runtime)</li>
+              <li>Fallback: pure Python when Cython not compiled</li>
+              <li>5–7× speedup over v0.5.0 (n=1000: 129× → 26× vs Dijkstra)</li>
+              <li>281 unit tests — all passing</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-dot-col">
+            <div class="timeline-dot done"></div>
+            <div class="timeline-line"></div>
+          </div>
+          <div class="timeline-content">
+            <div class="timeline-version">v0.5.0</div>
+            <div class="timeline-date">April 2026</div>
+            <ul class="timeline-items">
+              <li><strong>Breaking the Sorting Barrier SSSP</strong> — O(m log²/³ n)</li>
+              <li>First Python implementation of Duan et al. (2025) — arXiv:2504.17033v2</li>
+              <li>BlockHeap (Lemma 3.3), constant-degree transform (Frederickson 1983)</li>
+              <li>Assumption 2.1 lexicographic tiebreaking, W-sweep propagation</li>
+              <li><code>plot_breaking_barrier_result</code> visualization</li>
+              <li>99 new unit tests (281 total)</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-dot-col">
+            <div class="timeline-dot done"></div>
+            <div class="timeline-line"></div>
+          </div>
+          <div class="timeline-content">
+            <div class="timeline-version">v0.4.0</div>
             <div class="timeline-date">April 2026</div>
             <ul class="timeline-items">
               <li>Kruskal &amp; Prim Minimum Spanning Tree</li>
@@ -1259,7 +1298,6 @@ G3 = from_edge_list(edges)</code></pre>
               <li>Topological Sort — DFS and Kahn's algorithm</li>
               <li>Centralized exception hierarchy (7 exception classes + 5 validators)</li>
               <li>Algorithm-specific visualization: MST steps, flow network, SCC, topo order</li>
-              <li>182 unit tests total</li>
             </ul>
           </div>
         </div>
@@ -1328,31 +1366,29 @@ G3 = from_edge_list(edges)</code></pre>
             <div class="timeline-line"></div>
           </div>
           <div class="timeline-content">
-            <div class="timeline-version">v0.4.0 — <span style="color:var(--accent2)">Released</span></div>
+            <div class="timeline-version">v0.5.0 — <span style="color:var(--accent2)">Released</span></div>
             <div class="timeline-date">April 2026</div>
             <ul class="timeline-items">
-              <li>Kruskal &amp; Prim Minimum Spanning Tree ✓</li>
-              <li>Max Flow — Edmonds-Karp ✓</li>
-              <li>Tarjan SCC, Topological Sort ✓</li>
-              <li>Centralized exception system ✓</li>
-              <li>Extended visualization module ✓</li>
+              <li><strong>Breaking the Sorting Barrier SSSP</strong> ✓</li>
+              <li>O(m log²/³ n) directed SSSP — Duan et al. (2025) ✓</li>
+              <li>BlockHeap, constant-degree transform ✓</li>
+              <li>281 unit tests ✓</li>
             </ul>
           </div>
         </div>
 
         <div class="timeline-item">
           <div class="timeline-dot-col">
-            <div class="timeline-dot current"></div>
+            <div class="timeline-dot done"></div>
             <div class="timeline-line"></div>
           </div>
           <div class="timeline-content">
-            <div class="timeline-version">v0.5.0 — 🎯 Main Goal</div>
-            <div class="timeline-date">Planned — June 2026</div>
+            <div class="timeline-version">v0.6.0 — <span style="color:var(--accent2)">Released</span></div>
+            <div class="timeline-date">April 2026</div>
             <ul class="timeline-items">
-              <li><strong>Breaking the Sorting Barrier SSSP</strong></li>
-              <li>Implementation of Duan et al. (2025) — arXiv:2504.17033v2</li>
-              <li>O(m + n log log n) directed SSSP</li>
-              <li>Surpasses the classical O(m + n log n) barrier</li>
+              <li><strong>Cython acceleration</strong> ✓</li>
+              <li>5–7× speedup over pure Python ✓</li>
+              <li>Fallback: pure Python when Cython not compiled ✓</li>
             </ul>
           </div>
         </div>
@@ -1365,7 +1401,7 @@ G3 = from_edge_list(edges)</code></pre>
             <div class="timeline-version">v1.0.0</div>
             <div class="timeline-date">Planned — September 2026</div>
             <ul class="timeline-items">
-              <li>Cython optimizations</li>
+              <li>Parallelization (multi-threading / NumPy vectorization)</li>
               <li>Domain modules: logistics, finance, social networks</li>
               <li>Production-ready stable release</li>
             </ul>

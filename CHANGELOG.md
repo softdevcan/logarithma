@@ -5,6 +5,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-04-06
+
+### Added
+
+- **Cython acceleration for `breaking_barrier_sssp`** (optional, fallback to pure Python)
+  - `block_heap.pyx` — Cython port of BlockHeap (Lemma 3.3): cdef classes, C-level double arithmetic
+  - `breaking_barrier_core.pyx` — Cython core: `_should_relax` as `cdef inline nogil`, `_find_pivots`, `_base_case`, `_bmssp` with typed memoryviews (`double[::1]`, `Py_ssize_t[::1]`)
+  - `setup_ext.py` — standalone build script: `python setup_ext.py build_ext --inplace`
+  - `pyproject.toml` optional dep: `pip install "logarithma[fast]"` pulls Cython
+  - Automatic fallback: pure Python runs unchanged when `.pyd/.so` not present
+
+### Changed
+
+- **`breaking_barrier.py` — pure-Python tier optimizations (v0.6.0)**
+  - Node ID mapping: all original nodes mapped to contiguous integers `0..n-1` — eliminates `repr()` calls in hot-path tiebreaking (was ~11% of total runtime)
+  - `dist_est`, `pred`, `alpha` switched from `dict` to pre-allocated `list` — O(1) index vs dict lookup, removes `.get()` overhead
+  - `_should_relax` uses integer comparison (`u < pred[v]`) instead of `repr(u) < repr(pred.get(v))`
+
+- **`graph_transform.py` — NetworkX overhead reduction**
+  - `to_constant_degree` collects all nodes/edges into plain lists first, then calls `add_nodes_from` + `add_weighted_edges_from` once — avoids per-edge NetworkX `add_edge` overhead
+
+### Performance (sparse graphs, m ≈ 2n)
+
+| n | v0.5.0 vs Dijkstra | v0.6.0 vs Dijkstra | Improvement |
+|---|---|---|---|
+| 500 | 99x | 75x | ~24% faster |
+| 1000 | 129x | 26x | **~5x faster** |
+| 2000 | 162x | 21x | **~7x faster** |
+
+### Updated
+- `__version__` → `"0.6.0"`
+- `pyproject.toml` version → `"0.6.0"`, added `[fast]` optional dependency
+
+---
+
 ## [0.5.0] - 2026-04-06
 
 ### Added

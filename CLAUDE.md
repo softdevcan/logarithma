@@ -14,7 +14,7 @@
 
 ## Mevcut Durum (Nisan 2026)
 
-### Versiyon: 0.5.0
+### Versiyon: 0.6.0
 
 ### Implement Edilmiş Özellikler
 
@@ -35,6 +35,8 @@
 | `breaking_barrier` | `breaking_barrier_sssp()` | ✅ v0.5.0 |
 | `block_heap` | `BlockHeap` (Lemma 3.3 veri yapısı) | ✅ v0.5.0 |
 | `graph_transform` | `to_constant_degree()`, `map_distances_back()` | ✅ v0.5.0 |
+| `block_heap.pyx` | Cython BlockHeap — cdef classes, C-level doubles | ✅ v0.6.0 |
+| `breaking_barrier_core.pyx` | Cython core — typed memoryviews, `nogil` relax | ✅ v0.6.0 |
 
 **Unit test toplamı: 281**
 
@@ -57,9 +59,11 @@ logarithma/
 │   │   │   ├── astar.py          # astar + astar_with_stats + 3 heuristic
 │   │   │   ├── bellman_ford.py   # bellman_ford + bellman_ford_path
 │   │   │   ├── bidirectional_dijkstra.py
-│   │   │   ├── breaking_barrier.py   # O(m log^{2/3} n) SSSP — Duan et al. 2025
-│   │   │   ├── block_heap.py         # BlockHeap (Lemma 3.3) — D0/D1 veri yapısı
-│   │   │   └── graph_transform.py    # Constant-degree transform (Frederickson 1983)
+│   │   │   ├── breaking_barrier.py       # O(m log^{2/3} n) SSSP — Duan et al. 2025
+│   │   │   ├── breaking_barrier_core.pyx # Cython core: _should_relax/FindPivots/BMSSP
+│   │   │   ├── block_heap.py             # BlockHeap (Lemma 3.3) — D0/D1 veri yapısı
+│   │   │   ├── block_heap.pyx            # Cython BlockHeap — cdef classes
+│   │   │   └── graph_transform.py        # Constant-degree transform (Frederickson 1983)
 │   │   ├── traversal/
 │   │   │   ├── bfs.py            # bfs + bfs_path
 │   │   │   └── dfs.py            # dfs + dfs_path + detect_cycle
@@ -116,6 +120,7 @@ logarithma/
 │   ├── breaking_barrier_walkthrough.md          # n=8 elle çalıştırma
 │   └── PROJECT_STRUCTURE.md
 ├── pyproject.toml
+├── setup_ext.py      # Cython build: python setup_ext.py build_ext --inplace
 ├── CHANGELOG.md
 └── CLAUDE.md
 ```
@@ -135,7 +140,7 @@ lg.astar_with_stats(G, source, target, heuristic=None)
 lg.bellman_ford(G, source)
 lg.bellman_ford_path(G, source, target)
 lg.bidirectional_dijkstra(G, source, target)
-lg.breaking_barrier_sssp(G, source)  # O(m log^{2/3} n) — v0.5.0-dev
+lg.breaking_barrier_sssp(G, source)  # O(m log^{2/3} n) — v0.5.0, Cython accel v0.6.0
 
 # Traversal
 lg.bfs(G, source)
@@ -326,8 +331,12 @@ except NodeNotFoundError as e:
 # Kurulum
 pip install -e ".[dev,viz]"
 
+# Cython extension derleme (opsiyonel, ~5x hızlanma sağlar)
+pip install cython
+python setup_ext.py build_ext --inplace
+
 # Test
-pytest tests/
+pytest tests/unit/
 
 # Linting
 black src/
@@ -336,7 +345,7 @@ flake8 src/
 ```
 
 **Bağımlılıklar**: `numpy>=1.20`, `networkx>=2.6`
-**Opsiyonel**: `matplotlib>=3.5`, `plotly>=5.0` (viz için)
+**Opsiyonel**: `matplotlib>=3.5`, `plotly>=5.0` (viz için), `cython>=3.0` (performance için)
 
 ---
 
@@ -349,7 +358,7 @@ flake8 src/
 | Faz 2.x | v0.3.x | Algoritma-spesifik visualization, DFS tree viz, error handling | ✅ Tamamlandı |
 | Faz 3 | v0.4.0 | MST (Kruskal/Prim), Network Flow, SCC, Topological Sort | ✅ Tamamlandı |
 | Faz 4 | v0.5.0 | **Breaking the Sorting Barrier SSSP** | ✅ Tamamlandı |
-| Faz 5 | v0.6.0 | Cython optimizasyonu, paralel işleme | 📋 Planlandı |
+| Faz 5 | v0.6.0 | **Cython optimizasyonu** | ✅ Tamamlandı |
 | Faz 6 | v1.0.0 | Domain modülleri, production release | 📋 Planlandı |
 
 **Hedef v1.0.0**: Eylül 2026
@@ -394,6 +403,15 @@ Dijkstra'ya karşı 30 random küçük, 10 medium, 5 büyük graf ile doğruland
 - [x] Benchmark (Dijkstra karşılaştırma, n scaling) — `tests/benchmarks/benchmark_breaking_barrier.py`
 - [x] v0.5.0 release
 
+### Tamamlanan İşler (v0.6.0)
+
+- [x] Pure Python optimizasyonları: node ID integer mapping, `repr()` kaldırıldı, list arrays
+- [x] `graph_transform.py` — NetworkX overhead azaltıldı (batch add)
+- [x] `block_heap.pyx` — Cython BlockHeap: cdef classes, C-level double arithmetic
+- [x] `breaking_barrier_core.pyx` — Cython core: typed memoryviews, `_should_relax` `nogil`
+- [x] `setup_ext.py` — standalone Cython build script, fallback mekanizması
+- [x] v0.6.0 release
+
 **Detaylı plan**: `docs/breaking_barrier_implementation_plan.md`
 **Makale PDF**: `docs/Breaking the Sorting Barrier for Directed Single-Source Shortest.pdf`
 
@@ -405,7 +423,9 @@ Dijkstra'ya karşı 30 random küçük, 10 medium, 5 büyük graf ile doğruland
 2. Dijkstra'da `graph.neighbors()` kullanımı — DiGraph'ta sadece out-edges döner, bu beklenen davranış.
 3. Yeni visualization fonksiyonları (`mst_viz.py`, `flow_viz.py`, `graph_properties_viz.py`) için unit test henüz yazılmadı.
 4. `prim.py` içindeki `_find_component` fonksiyonu dead code — bir sonraki cleanup'ta silinebilir.
-5. `breaking_barrier_sssp` pure Python'da Dijkstra'dan yavaş — constant factor büyük, pratik crossover çok yüksek n gerektirir. v0.6.0 Cython optimizasyonu hedefleniyor.
+5. `breaking_barrier_sssp` Cython ile n=1000 için ~26x (Dijkstra'ya göre) — constant factor hâlâ büyük. Pratik crossover çok yüksek n gerektirir. v1.0.0'da paralel işleme ile daha da iyileştirilebilir.
+6. Cython `.pyx` dosyaları Windows'ta `cl.exe` (MSVC) gerektiriyor — Linux/Mac'te `gcc` ile otomatik derlenir. `.pyd` dosyaları platform-specific, binary dağıtım için wheel build gerekir.
+7. `block_heap_cy` modülü şu an `breaking_barrier.py` tarafından direkt kullanılmıyor (sadece `breaking_barrier_core.pyx` içinden); ileride BlockHeap'in pure Python versiyonu tamamen Cython ile replace edilebilir.
 
 ---
 

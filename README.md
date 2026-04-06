@@ -20,6 +20,13 @@ With visualization support:
 pip install logarithma[viz]
 ```
 
+With optional Cython acceleration for `breaking_barrier_sssp`:
+
+```bash
+pip install "logarithma[fast]"
+python setup_ext.py build_ext --inplace
+```
+
 **Requirements:** Python 3.8+, NumPy ≥ 1.20, NetworkX ≥ 2.6
 
 ## Quick Start
@@ -94,7 +101,7 @@ print(result['path'])
 
 **Breaking the Sorting Barrier SSSP** — `O(m log²/³ n)`, directed graphs, non-negative weights
 
-The first Python implementation of Duan, Mao, Mao, Shu, Yin (2025) — arXiv:2504.17033v2. Breaks Dijkstra's classical Ω(n log n) sorting barrier for sparse directed graphs.
+The first Python implementation of Duan, Mao, Mao, Shu, Yin (2025) — arXiv:2504.17033v2. Breaks Dijkstra's classical Ω(n log n) sorting barrier for sparse directed graphs. Optional Cython acceleration available in v0.6.0.
 
 ```python
 import networkx as nx
@@ -109,6 +116,16 @@ G.add_edge('B', 'C', weight=2)
 distances = lg.breaking_barrier_sssp(G, 's')
 # {'s': 0, 'A': 2, 'B': 5, 'C': 3}
 ```
+
+**Performance (v0.6.0, sparse graphs m ≈ 2n):**
+
+| n | Dijkstra | Breaking Barrier | Ratio |
+|---|---|---|---|
+| 500 | 0.8ms | 61ms | 75× |
+| 1000 | 1.7ms | 47ms | 26× |
+| 2000 | 3.4ms | 74ms | 21× |
+
+> The algorithm is asymptotically optimal (O(m log²/³ n) vs Dijkstra's O(m + n log n)) — the practical crossover point requires very large n. Cython acceleration reduces the constant factor ~5–7× vs pure Python.
 
 ### Graph Traversal
 
@@ -302,6 +319,7 @@ Key components:
 - **BlockHeap** (Lemma 3.3) — block-based linked list data structure with Insert / BatchPrepend / Pull
 - **Constant-degree transform** (Frederickson 1983) — graph preprocessing for theoretical guarantees
 - **Assumption 2.1** — lexicographic tiebreaking for deterministic predecessor forest
+- **Cython acceleration** (v0.6.0) — `_should_relax` as `cdef inline nogil`, typed memoryviews for ~5–7× speedup over v0.5.0
 
 ## License
 

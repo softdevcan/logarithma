@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "logarithma"
-version = "0.5.0"
+version = "0.6.0"
 description = "High-performance graph algorithms library featuring advanced shortest path algorithms"
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -39,6 +39,12 @@ dev = [
 viz = [
     "matplotlib>=3.5",
     "plotly>=5.0",
+]
+# Optional Cython acceleration for breaking_barrier_sssp.
+# Install with: pip install "logarithma[fast]"
+# Then build extensions: python setup_ext.py build_ext --inplace
+fast = [
+    "cython>=3.0",
 ]
 
 [project.urls]
