@@ -5,6 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-04-06
+
+### Added
+
+- **Breaking the Sorting Barrier SSSP** — Ana hedef tamamlandı
+  - `breaking_barrier_sssp(graph, source)` — O(m log^{2/3} n) deterministik SSSP
+  - Duan, Mao, Mao, Shu, Yin (2025) — arXiv:2504.17033v2
+  - Directed graphs, non-negative real weights
+  - Dijkstra'nın Ω(n log n) sorting barrier'ını kıran ilk Python implementasyonu
+
+- **Yeni veri yapıları** (`src/logarithma/algorithms/shortest_path/`)
+  - `block_heap.py` — BlockHeap (Lemma 3.3): D0/D1 block-linked-list, Insert/BatchPrepend/Pull
+  - `graph_transform.py` — `to_constant_degree()` + `map_distances_back()` (Frederickson 1983)
+
+- **Assumption 2.1 + tiebreaking** (`breaking_barrier.py`)
+  - `_should_relax()` — leksikografik tuple karşılaştırma (distance, alpha, node)
+  - `pred[]` + `alpha[]` map'leri — deterministik predecessor forest
+  - W-sweep propagation — constant-degree transform için edge relaxation
+
+- **1 yeni visualization fonksiyonu** (toplam 24)
+  - `plot_breaking_barrier_result(graph, source, distances, ...)` — mesafe gradient renklendirme, hedef path highlight
+
+- **99 yeni unit test** (toplam 281)
+  - `tests/unit/test_breaking_barrier.py` (63 test) — Dijkstra karşılaştırmalı doğrulama
+  - `tests/unit/test_graph_transform.py` (36 test) — constant-degree transform
+
+- **Benchmark scripti**
+  - `tests/benchmarks/benchmark_breaking_barrier.py` — Dijkstra vs breaking_barrier_sssp, n scaling, plot desteği
+
+### Updated
+- `__version__` → `"0.5.0"`
+- Public API: `lg.breaking_barrier_sssp` top-level'da kullanılabilir
+- `plot_breaking_barrier_result` visualization modülüne eklendi
+
+---
+
 ## [0.4.0] - 2026-03-31
 
 ### Added

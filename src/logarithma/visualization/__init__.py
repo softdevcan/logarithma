@@ -51,6 +51,7 @@ from .shortest_path_viz import (
     plot_negative_cycle,
     plot_bidirectional_search,
     plot_shortest_path_comparison,
+    plot_breaking_barrier_result,
 )
 
 from .traversal_viz import (
@@ -92,6 +93,7 @@ __all__ = [
     'plot_negative_cycle',
     'plot_bidirectional_search',
     'plot_shortest_path_comparison',
+    'plot_breaking_barrier_result',
     # Traversal-specific visualization
     'plot_dfs_tree',
     # MST visualization

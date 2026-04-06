@@ -14,7 +14,7 @@
 
 ## Mevcut Durum (Nisan 2026)
 
-### Versiyon: 0.4.0
+### Versiyon: 0.5.0
 
 ### Implement Edilmiş Özellikler
 
@@ -28,20 +28,19 @@
 | `bellman_ford` | `bellman_ford()`, `bellman_ford_path()` | ✅ v0.3.0 |
 | `bidirectional_dijkstra` | `bidirectional_dijkstra()` | ✅ v0.3.0 |
 | `exceptions` | 7 exception sınıfı + 5 validator helper | ✅ v0.4.0 |
-| `visualization` | 23 fonksiyon — genel (10) + algoritma-spesifik (13) | ✅ v0.4.0 |
+| `visualization` | 24 fonksiyon — genel (10) + algoritma-spesifik (14) | ✅ v0.5.0 |
 | `mst` | `kruskal_mst()`, `prim_mst()` | ✅ v0.4.0 |
 | `network_flow` | `max_flow()` (Edmonds-Karp) | ✅ v0.4.0 |
 | `graph_properties` | `tarjan_scc()`, `topological_sort()` | ✅ v0.4.0 |
-| `breaking_barrier` | `breaking_barrier_sssp()` | 🔧 v0.5.0-dev |
-| `block_heap` | `BlockHeap` (Lemma 3.3 veri yapısı) | 🔧 v0.5.0-dev |
-| `graph_transform` | `to_constant_degree()`, `map_distances_back()` | 🔧 v0.5.0-dev |
+| `breaking_barrier` | `breaking_barrier_sssp()` | ✅ v0.5.0 |
+| `block_heap` | `BlockHeap` (Lemma 3.3 veri yapısı) | ✅ v0.5.0 |
+| `graph_transform` | `to_constant_degree()`, `map_distances_back()` | ✅ v0.5.0 |
 
 **Unit test toplamı: 281**
 
 ### Henüz Yapılmamışlar (Roadmap)
 
 - ❌ Floyd-Warshall / Johnson's
-- 🔧 **Breaking the Sorting Barrier SSSP** (arXiv:2504.17033v2) — ANA HEDEF, algoritma çalışıyor (99/99 test), public API export + benchmark kalan
 
 ---
 
@@ -272,6 +271,7 @@ except NodeNotFoundError as e:
 | `plot_negative_cycle` | Döngü node/kenarları kalın kırmızı, toplam döngü ağırlığı |
 | `plot_bidirectional_search` | Forward (mavi) / backward (yeşil) frontier, buluşma noktası (sarı) |
 | `plot_shortest_path_comparison` | Dijkstra / A* / BiDijkstra yan yana subplot karşılaştırma |
+| `plot_breaking_barrier_result` | Mesafe gradient renklendirme (mavi); hedef path highlight; erişilemeyen=gri |
 
 ### DFS Tree Fonksiyonu (traversal_viz.py)
 
@@ -348,7 +348,7 @@ flake8 src/
 | Faz 2 | v0.3.0 | A*, Bellman-Ford, Bidirectional Dijkstra | ✅ Tamamlandı |
 | Faz 2.x | v0.3.x | Algoritma-spesifik visualization, DFS tree viz, error handling | ✅ Tamamlandı |
 | Faz 3 | v0.4.0 | MST (Kruskal/Prim), Network Flow, SCC, Topological Sort | ✅ Tamamlandı |
-| Faz 4 | v0.5.0 | **Breaking the Sorting Barrier SSSP** | 🔧 Algoritma çalışıyor, API export + benchmark kalan |
+| Faz 4 | v0.5.0 | **Breaking the Sorting Barrier SSSP** | ✅ Tamamlandı |
 | Faz 5 | v0.6.0 | Cython optimizasyonu, paralel işleme | 📋 Planlandı |
 | Faz 6 | v1.0.0 | Domain modülleri, production release | 📋 Planlandı |
 
@@ -387,11 +387,12 @@ Dijkstra'ya karşı 30 random küçük, 10 medium, 5 büyük graf ile doğruland
 | Assumption 2.1 | §2 s.4 | ✅ pred[]/alpha[] + lexicographic tiebreaking |
 | W-sweep propagation | Algorithm 3 satır 22 genişletmesi | ✅ Transform impl. detayı |
 
-### Kalan İşler
+### Tamamlanan İşler (v0.5.0)
 
-- [ ] Public API export (`__init__.py` chain)
-- [ ] Benchmark (Dijkstra karşılaştırma, n scaling)
-- [ ] v0.5.0 release
+- [x] Public API export (`__init__.py` chain)
+- [x] Visualization: `plot_breaking_barrier_result`
+- [x] Benchmark (Dijkstra karşılaştırma, n scaling) — `tests/benchmarks/benchmark_breaking_barrier.py`
+- [x] v0.5.0 release
 
 **Detaylı plan**: `docs/breaking_barrier_implementation_plan.md`
 **Makale PDF**: `docs/Breaking the Sorting Barrier for Directed Single-Source Shortest.pdf`
@@ -404,7 +405,7 @@ Dijkstra'ya karşı 30 random küçük, 10 medium, 5 büyük graf ile doğruland
 2. Dijkstra'da `graph.neighbors()` kullanımı — DiGraph'ta sadece out-edges döner, bu beklenen davranış.
 3. Yeni visualization fonksiyonları (`mst_viz.py`, `flow_viz.py`, `graph_properties_viz.py`) için unit test henüz yazılmadı.
 4. `prim.py` içindeki `_find_component` fonksiyonu dead code — bir sonraki cleanup'ta silinebilir.
-5. `breaking_barrier_sssp` henüz top-level public API'ye export edilmedi — v0.5.0'da yapılacak.
+5. `breaking_barrier_sssp` pure Python'da Dijkstra'dan yavaş — constant factor büyük, pratik crossover çok yüksek n gerektirir. v0.6.0 Cython optimizasyonu hedefleniyor.
 
 ---
 

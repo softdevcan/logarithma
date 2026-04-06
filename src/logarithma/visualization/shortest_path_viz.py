@@ -825,6 +825,160 @@ def plot_shortest_path_comparison(
     plt.show()
 
 
+def plot_breaking_barrier_result(
+    graph: Union[nx.Graph, nx.DiGraph],
+    source: Any,
+    distances: Dict[Any, float],
+    highlight_targets: Optional[List[Any]] = None,
+    show_distances: bool = True,
+    pos: Optional[Dict[Any, Tuple[float, float]]] = None,
+    layout: str = "spring",
+    node_size: int = 500,
+    title: Optional[str] = None,
+    figsize: Tuple[int, int] = (10, 8),
+    save_path: Optional[str] = None,
+) -> None:
+    """
+    Visualize the result of the Breaking the Sorting Barrier SSSP algorithm.
+
+    Nodes are colour-coded by reachability and distance from source:
+    - **Green**  : source
+    - **Orange** : highlighted target(s)
+    - **Blue gradient**: reachable nodes (darker = closer to source)
+    - **Grey**   : unreachable nodes
+    - **Red path**: shortest path to highlighted target(s)
+
+    Args:
+        graph:              NetworkX DiGraph with non-negative weights.
+        source:             Source node used when running breaking_barrier_sssp().
+        distances:          Result dict from :func:`breaking_barrier_sssp`.
+        highlight_targets:  List of target nodes whose shortest paths to draw.
+                            If None, no paths are highlighted.
+        show_distances:     If True, show distance labels inside each node.
+        pos:                Pre-computed layout dict.
+        layout:             Layout algorithm name (used if *pos* is None).
+        node_size:          Matplotlib node size.
+        title:              Figure title.
+        figsize:            Figure size.
+        save_path:          Save path for the figure.
+
+    Raises:
+        ImportError: If matplotlib is not installed.
+
+    Example:
+        >>> import networkx as nx
+        >>> from logarithma import breaking_barrier_sssp
+        >>> from logarithma.visualization import plot_breaking_barrier_result
+        >>> G = nx.DiGraph()
+        >>> G.add_edge('s', 'A', weight=2)
+        >>> G.add_edge('s', 'B', weight=5)
+        >>> G.add_edge('A', 'C', weight=1)
+        >>> G.add_edge('B', 'C', weight=2)
+        >>> distances = breaking_barrier_sssp(G, 's')
+        >>> plot_breaking_barrier_result(G, 's', distances, highlight_targets=['C'])
+    """
+    if not MATPLOTLIB_AVAILABLE:
+        raise ImportError("matplotlib is required. Install with: pip install matplotlib")
+
+    if pos is None:
+        pos = _get_layout(graph, layout)
+
+    # Separate reachable and unreachable nodes
+    reachable = {n: d for n, d in distances.items() if d < float('inf')}
+    max_dist = max(reachable.values()) if len(reachable) > 1 else 1.0
+
+    # Build predecessor map for path reconstruction
+    preds: Dict[Any, Optional[Any]] = {source: None}
+    for u, v, data in graph.edges(data=True):
+        w = float(data.get('weight', 1))
+        d_u = distances.get(u, float('inf'))
+        d_v = distances.get(v, float('inf'))
+        if d_u + w == d_v and v not in preds:
+            preds[v] = u
+
+    # Build node colours — blue gradient by distance
+    target_set = set(highlight_targets) if highlight_targets else set()
+    node_colors = []
+    for node in graph.nodes():
+        if node == source:
+            node_colors.append(_C_SOURCE)
+        elif node in target_set:
+            node_colors.append(_C_TARGET)
+        elif node in reachable:
+            # Gradient: close nodes = dark blue, far = light blue
+            ratio = reachable[node] / max_dist if max_dist > 0 else 0
+            r = int(52 + ratio * (133 - 52))
+            g = int(152 + ratio * (193 - 152))
+            b = int(219 + ratio * (233 - 219))
+            node_colors.append(f"#{r:02x}{g:02x}{b:02x}")
+        else:
+            node_colors.append(_C_UNEXPLORED)
+
+    fig, ax = plt.subplots(figsize=figsize)
+
+    nx.draw_networkx_nodes(graph, pos, node_color=node_colors, node_size=node_size, ax=ax)
+
+    if show_distances:
+        dist_labels = {}
+        for n in graph.nodes():
+            d = distances.get(n, float('inf'))
+            if d == float('inf'):
+                dist_labels[n] = f"{n}\n(∞)"
+            elif d == int(d):
+                dist_labels[n] = f"{n}\n(d={int(d)})"
+            else:
+                dist_labels[n] = f"{n}\n(d={d:.2g})"
+        nx.draw_networkx_labels(graph, pos, dist_labels, font_size=8, ax=ax)
+    else:
+        nx.draw_networkx_labels(graph, pos, ax=ax)
+
+    nx.draw_networkx_edges(graph, pos, edge_color="lightgray", width=1.0, ax=ax,
+                           arrows=isinstance(graph, nx.DiGraph))
+
+    edge_labels = nx.get_edge_attributes(graph, 'weight')
+    if edge_labels:
+        nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels, ax=ax)
+
+    # Draw shortest paths to highlighted targets
+    if highlight_targets:
+        for tgt in highlight_targets:
+            if distances.get(tgt, float('inf')) == float('inf'):
+                continue
+            path = _trace_path(preds, source, tgt)
+            if path:
+                path_edges = [(path[i], path[i + 1]) for i in range(len(path) - 1)]
+                nx.draw_networkx_edges(graph, pos, edgelist=path_edges,
+                                       edge_color=_C_PATH, width=3.0, ax=ax,
+                                       arrows=isinstance(graph, nx.DiGraph))
+                nx.draw_networkx_nodes(graph, pos, nodelist=[tgt],
+                                       node_color=_C_TARGET, node_size=node_size, ax=ax)
+
+    n_reachable = len(reachable)
+    n_total = graph.number_of_nodes()
+
+    legend_handles = [
+        mpatches.Patch(color=_C_SOURCE, label="Source"),
+        mpatches.Patch(color=_C_TARGET, label="Target(s)"),
+        mpatches.Patch(color=_C_EXPANDED, label=f"Reachable ({n_reachable}/{n_total})"),
+        mpatches.Patch(color=_C_UNEXPLORED, label="Unreachable"),
+    ]
+    if highlight_targets:
+        legend_handles.append(
+            Line2D([0], [0], color=_C_PATH, linewidth=3.0, label="Shortest path")
+        )
+    ax.legend(handles=legend_handles, loc="upper right", fontsize=9)
+
+    ax.set_title(title or f"Breaking Barrier SSSP from '{source}' \u2014 {n_reachable}/{n_total} reachable",
+                 fontsize=13, fontweight="bold")
+    ax.axis("off")
+    plt.tight_layout()
+
+    if save_path:
+        plt.savefig(save_path, dpi=300, bbox_inches="tight")
+
+    plt.show()
+
+
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------

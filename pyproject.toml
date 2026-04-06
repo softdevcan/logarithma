@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "logarithma"
-version = "0.4.0"
+version = "0.5.0"
 description = "High-performance graph algorithms library featuring advanced shortest path algorithms"
 readme = "README.md"
 license = {file = "LICENSE"}
