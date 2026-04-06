@@ -6,7 +6,7 @@
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Logarithma is a Python library for graph algorithms built on [NetworkX](https://networkx.org/). It provides clean, well-tested implementations of shortest path and traversal algorithms, with the primary research goal of implementing the **Breaking the Sorting Barrier** SSSP algorithm (Duan et al., 2025).
+Logarithma is a Python library for graph algorithms built on [NetworkX](https://networkx.org/). It provides clean, well-tested implementations of shortest path and traversal algorithms, including the **Breaking the Sorting Barrier** SSSP algorithm (Duan et al., 2025) — the first Python implementation of an algorithm that surpasses Dijkstra's classical O(n log n) sorting barrier.
 
 ## Installation
 
@@ -90,6 +90,24 @@ except NegativeCycleError as e:
 result = lg.bidirectional_dijkstra(G, source='A', target='D')
 print(result['distance'])
 print(result['path'])
+```
+
+**Breaking the Sorting Barrier SSSP** — `O(m log²/³ n)`, directed graphs, non-negative weights
+
+The first Python implementation of Duan, Mao, Mao, Shu, Yin (2025) — arXiv:2504.17033v2. Breaks Dijkstra's classical Ω(n log n) sorting barrier for sparse directed graphs.
+
+```python
+import networkx as nx
+import logarithma as lg
+
+G = nx.DiGraph()
+G.add_edge('s', 'A', weight=2)
+G.add_edge('s', 'B', weight=5)
+G.add_edge('A', 'C', weight=1)
+G.add_edge('B', 'C', weight=2)
+
+distances = lg.breaking_barrier_sssp(G, 's')
+# {'s': 0, 'A': 2, 'B': 5, 'C': 3}
 ```
 
 ### Graph Traversal
@@ -182,7 +200,7 @@ except NotDAGError as e:
 
 ### Visualization
 
-23 visualization functions — requires `pip install logarithma[viz]`.
+24 visualization functions — requires `pip install logarithma[viz]`.
 
 **General graph plotting:**
 ```python
@@ -196,23 +214,28 @@ plot_traversal(G, visited_order, title='BFS Traversal')
 **Algorithm-specific visualizations:**
 ```python
 from logarithma.visualization import (
-    plot_astar_search,             # expanded nodes, open set, heuristic values
-    plot_bellman_ford_result,      # negative edges (dashed red), distance labels
-    plot_negative_cycle,           # cycle nodes/edges highlighted in red
-    plot_bidirectional_search,     # forward/backward frontiers, meeting point
-    plot_shortest_path_comparison, # Dijkstra vs A* vs BiDijkstra side by side
-    plot_dfs_tree,                 # tree/back/cross edges, discovery-finish times
+    plot_astar_search,              # expanded nodes, open set, heuristic values
+    plot_bellman_ford_result,       # negative edges (dashed red), distance labels
+    plot_negative_cycle,            # cycle nodes/edges highlighted in red
+    plot_bidirectional_search,      # forward/backward frontiers, meeting point
+    plot_shortest_path_comparison,  # Dijkstra vs A* vs BiDijkstra side by side
+    plot_breaking_barrier_result,   # distance gradient colouring, path highlight
+    plot_dfs_tree,                  # tree/back/cross edges, discovery-finish times
     # MST
-    plot_mst,                      # MST edges highlighted on original graph
-    plot_mst_comparison,           # Kruskal vs Prim side by side
-    plot_kruskal_steps,            # step-by-step Kruskal animation
+    plot_mst,                       # MST edges highlighted on original graph
+    plot_mst_comparison,            # Kruskal vs Prim side by side
+    plot_kruskal_steps,             # step-by-step Kruskal animation
     # Network Flow
-    plot_flow_network,             # flow/capacity labels, saturated/partial/empty
-    plot_flow_paths,               # active flow paths (width ∝ flow)
+    plot_flow_network,              # flow/capacity labels, saturated/partial/empty
+    plot_flow_paths,                # active flow paths (width ∝ flow)
     # Graph Properties
-    plot_scc,                      # each SCC a distinct colour + condensation DAG
-    plot_topological_order,        # left-to-right layered layout with rank numbers
+    plot_scc,                       # each SCC a distinct colour + condensation DAG
+    plot_topological_order,         # left-to-right layered layout with rank numbers
 )
+
+# Breaking Barrier — distance gradient + path to target
+distances = lg.breaking_barrier_sssp(G, 's')
+plot_breaking_barrier_result(G, 's', distances, highlight_targets=['C'])
 
 # DFS tree — edge classification + discovery/finish timestamps
 plot_dfs_tree(G, source='A', show_discovery_finish=True, show_depth=True)
@@ -258,6 +281,7 @@ All exceptions are subclasses of both `GraphError` and `ValueError`, so existing
 | A\* | `O(b^d)` practical | heuristic-guided |
 | Bellman-Ford | `O(V · E)` | negative weights, cycle detection |
 | Bidirectional Dijkstra | `O(E + V log V)` ~2× faster | point-to-point |
+| **Breaking Barrier SSSP** | **`O(m log²/³ n)`** | **directed, breaks sorting barrier** |
 | BFS / DFS | `O(V + E)` | traversal |
 | Kruskal MST | `O(E log E)` | undirected, spanning forest |
 | Prim MST | `O(E + V log V)` | undirected, spanning forest |
@@ -271,7 +295,13 @@ Full documentation and examples: **[softdevcan.github.io/logarithma](https://sof
 
 ## Research
 
-Logarithma's primary goal is implementing the **Breaking the Sorting Barrier for Directed Single-Source Shortest Paths** (Duan, Mao, Mao, Shu, Yin — arXiv:2504.17033v2, 2025), which surpasses the classical `O(m + n log n)` sorting barrier for directed SSSP.
+Logarithma's primary goal is implementing the **Breaking the Sorting Barrier for Directed Single-Source Shortest Paths** (Duan, Mao, Mao, Shu, Yin — arXiv:2504.17033v2, STOC 2025 Best Paper), which surpasses the classical `O(m + n log n)` sorting barrier for directed SSSP. This is the **first Python implementation** of this algorithm.
+
+Key components:
+- **BMSSP** (Bounded Multi-Source Shortest Path) — recursive divide-and-conquer framework
+- **BlockHeap** (Lemma 3.3) — block-based linked list data structure with Insert / BatchPrepend / Pull
+- **Constant-degree transform** (Frederickson 1983) — graph preprocessing for theoretical guarantees
+- **Assumption 2.1** — lexicographic tiebreaking for deterministic predecessor forest
 
 ## License
 
