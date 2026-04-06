@@ -32,24 +32,27 @@ Algorithm Overview:
 Time Complexity: O(m log^{2/3} n)
 Space Complexity: O(n + m)
 
-Note on this implementation:
-    This is a PoC (proof-of-concept) that prioritises correctness over
-    raw speed. The D data structure from Lemma 3.3 is approximated with a
-    plain sorted list; the theoretical O(log N/M) amortised bound therefore
-    does not hold here. A production-quality BlockHeap will replace it in a
-    later release.
+Data structure D (Lemma 3.3):
+    Implemented by BlockHeap in block_heap.py — a two-sequence block
+    linked list (D0 for BatchPrepend, D1 for Insert) with a SortedList-based
+    BST tracking per-block upper bounds in D1.  Supports Insert, BatchPrepend,
+    and Pull in amortized O(max{1, log(N/M)}) time.
 """
 
 import heapq
 import math
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Any, Dict, List, Tuple
 
 import networkx as nx
 
 from logarithma.algorithms.exceptions import (
     validate_graph,
     validate_source,
-    validate_weight,
+)
+from logarithma.algorithms.shortest_path.block_heap import BlockHeap
+from logarithma.algorithms.shortest_path.graph_transform import (
+    to_constant_degree,
+    map_distances_back,
 )
 
 # ---------------------------------------------------------------------------
@@ -59,6 +62,46 @@ from logarithma.algorithms.exceptions import (
 Node = Any
 Dist = float
 DistMap = Dict[Node, Dist]
+# Adjacency list: node → list of (neighbour, weight) — built once at entry
+AdjList = Dict[Node, List[Tuple[Node, float]]]
+PredMap = Dict[Node, Any]   # PRED[v] → predecessor node or None
+AlphaMap = Dict[Node, int]  # α[v] → hop count
+
+
+# ---------------------------------------------------------------------------
+# Assumption 2.1 — Lexicographic tiebreaking (§2, p.4)
+# ---------------------------------------------------------------------------
+
+def _should_relax(
+    candidate: float,
+    v: Node,
+    u: Node,
+    dist_est: DistMap,
+    pred: PredMap,
+    alpha: AlphaMap,
+) -> bool:
+    """Assumption 2.1 tiebreaking: lexicographic path ordering.
+
+    Returns True if the path through u to v is "shorter" than v's current path
+    under the lexicographic tuple ordering ⟨distance, hop_count, node_sequence⟩.
+
+    Reference: §2, page 4 — "We treat each path of length l that traverses
+    α vertices ... as a tuple ⟨l, α, v_α, ...⟩"
+    """
+    d_v = dist_est[v]
+    if candidate < d_v:
+        return True
+    if candidate > d_v:
+        return False
+    # candidate == d_v → tiebreak by hop count, then node ID
+    new_alpha = alpha.get(u, 0) + 1
+    old_alpha = alpha.get(v, 0)
+    if new_alpha < old_alpha:
+        return True
+    if new_alpha > old_alpha:
+        return False
+    # Same distance, same hop count → compare node repr for determinism
+    return repr(u) < repr(pred.get(v))
 
 
 # ---------------------------------------------------------------------------
@@ -84,72 +127,6 @@ def _compute_params(n: int) -> Tuple[int, int, int]:
 
 
 # ---------------------------------------------------------------------------
-# PoC data structure D  (approximation of Lemma 3.3)
-# ---------------------------------------------------------------------------
-
-class _SimpleD:
-    """Simplified approximation of the block-linked-list from Lemma 3.3.
-
-    Stores (value, key) pairs and supports:
-        insert(key, value)          — keep only minimum value per key
-        batch_prepend(pairs)        — insert many pairs at once
-        pull(M)                     — return up to M keys with smallest values
-                                      and an upper-bound separator x
-        is_empty()
-    """
-
-    def __init__(self, M: int, B: Dist):
-        self._M = max(1, M)
-        self._B = B
-        # key -> best (minimum) value seen so far
-        self._data: Dict[Node, Dist] = {}
-
-    def insert(self, key: Node, value: Dist) -> None:
-        if key not in self._data or value < self._data[key]:
-            self._data[key] = value
-
-    def batch_prepend(self, pairs) -> None:
-        for key, value in pairs:
-            self.insert(key, value)
-
-    def pull(self, M: Optional[int] = None) -> Tuple[Dict[Node, Dist], Dist]:
-        """Return up to M entries with the smallest values and separator x.
-
-        Returns:
-            (subset, x) where subset maps key->value for the M smallest,
-            and x is an upper bound separating subset from the rest.
-            If fewer than M elements remain, x = B (the global bound).
-        """
-        if not self._data:
-            return {}, self._B
-
-        m = M if M is not None else self._M
-        # Sort by value for selection — O(N log N), sufficient for PoC
-        sorted_items = sorted(self._data.items(), key=lambda kv: kv[1])
-
-        if len(sorted_items) <= m:
-            # Return everything; separator is B
-            result = dict(sorted_items)
-            for k in result:
-                del self._data[k]
-            return result, self._B
-        else:
-            subset_items = sorted_items[:m]
-            # separator = value of the first item NOT in the subset
-            separator = sorted_items[m][1]
-            result = dict(subset_items)
-            for k in result:
-                del self._data[k]
-            return result, separator
-
-    def is_empty(self) -> bool:
-        return len(self._data) == 0
-
-    def __len__(self) -> int:
-        return len(self._data)
-
-
-# ---------------------------------------------------------------------------
 # Algorithm 1 — FindPivots
 # ---------------------------------------------------------------------------
 
@@ -157,20 +134,28 @@ def _find_pivots(
     B: Dist,
     S: Dict[Node, Dist],
     dist_est: DistMap,
-    graph: nx.DiGraph,
+    adj: AdjList,
     k: int,
+    pred: PredMap,
+    alpha: AlphaMap,
 ) -> Tuple[Dict[Node, Dist], Dict[Node, Dist]]:
     """Algorithm 1: FindPivots(B, S) → (P, W).
 
     Runs k-step Bellman-Ford from S.  Returns pivot set P ⊆ S and
     expanded set W.
 
+    Uses Assumption 2.1 lexicographic tiebreaking (§2, p.4) to guarantee
+    the tight-edge structure is a forest (each node has exactly one
+    predecessor).
+
     Args:
         B:        distance upper bound for this BMSSP call
         S:        current frontier {node: dist_est[node]}
         dist_est: global mutable distance-estimate map (d̃)
-        graph:    the directed graph
+        adj:      precomputed adjacency list {node: [(neighbour, weight), ...]}
         k:        algorithm parameter
+        pred:     global mutable predecessor map (Assumption 2.1)
+        alpha:    global mutable hop-count map (Assumption 2.1)
 
     Returns:
         P: pivot set — subset of S whose shortest-path trees are large
@@ -183,11 +168,13 @@ def _find_pivots(
     for _ in range(k):
         W_next: Dict[Node, Dist] = {}
         for u in W_prev:
-            for v in graph.successors(u):
-                w = graph[u][v].get('weight', 1)
-                candidate = dist_est[u] + w
-                if candidate <= dist_est[v]:
+            d_u = dist_est[u]
+            for v, w in adj[u]:
+                candidate = d_u + w
+                if _should_relax(candidate, v, u, dist_est, pred, alpha):
                     dist_est[v] = candidate
+                    pred[v] = u
+                    alpha[v] = alpha.get(u, 0) + 1
                 # Only add to W_next if not already in W (prevents re-expansion)
                 if candidate < B and v not in W:
                     W_next[v] = dist_est[v]
@@ -200,31 +187,34 @@ def _find_pivots(
 
         W_prev = W_next
 
-    # Build directed forest F of tight relaxation edges within W
-    # F[v] = u means edge (u, v) is tight: dist_est[v] == dist_est[u] + w_uv
+    # Build directed forest F using pred[] (Assumption 2.1 guarantees forest).
+    # pred[v] == u means u is the unique tight predecessor of v.
     children: Dict[Node, list] = {u: [] for u in W}
-    for u in W:
-        for v in graph.successors(u):
-            if v not in W:
-                continue
-            w = graph[u][v].get('weight', 1)
-            if dist_est[u] + w == dist_est[v]:
-                children[u].append(v)
+    for v in W:
+        p = pred.get(v)
+        if p is not None and p in W:
+            children[p].append(v)
 
-    # Count subtree sizes rooted at each node in S
+    # Count subtree sizes rooted at each node in S (iterative to avoid
+    # RecursionError on deep graphs)
     subtree_size: Dict[Node, int] = {}
 
-    def _subtree(node: Node) -> int:
-        if node in subtree_size:
-            return subtree_size[node]
-        size = 1
-        for child in children.get(node, []):
-            size += _subtree(child)
-        subtree_size[node] = size
-        return size
-
-    for node in W:
-        _subtree(node)
+    for root in W:
+        if root in subtree_size:
+            continue
+        stack = [(root, False)]
+        while stack:
+            node, processed = stack.pop()
+            if processed:
+                size = 1
+                for child in children.get(node, []):
+                    size += subtree_size.get(child, 0)
+                subtree_size[node] = size
+            elif node not in subtree_size:
+                stack.append((node, True))
+                for child in children.get(node, []):
+                    if child not in subtree_size:
+                        stack.append((child, False))
 
     # Pivots: roots in S whose subtree has >= k vertices
     P = {u: dist_est[u] for u in S if subtree_size.get(u, 1) >= k}
@@ -243,48 +233,61 @@ def _base_case(
     B: Dist,
     S: Dict[Node, Dist],
     dist_est: DistMap,
-    graph: nx.DiGraph,
+    adj: AdjList,
     k: int,
+    pred: PredMap,
+    alpha: AlphaMap,
 ) -> Tuple[Dist, Dict[Node, Dist]]:
     """Algorithm 2: BaseCase(B, S) → (B', U).
 
     Mini Dijkstra starting from all nodes in S.  Stops after finding
     k+1 vertices or exhausting the heap (whichever comes first).
 
+    Uses Assumption 2.1 lexicographic tiebreaking for heap ordering
+    and relaxation (§2, p.4).
+
     Returns:
         B': new boundary (<= B)
         U:  set of complete vertices found
     """
-    # Heap entries: (dist, node)
+    # Heap entries: (dist, alpha, repr(node), node) — A2.1 tiebreaking
     heap: list = []
-    in_heap: Dict[Node, Dist] = {}
 
     for node, d in S.items():
-        heapq.heappush(heap, (d, node))
-        in_heap[node] = d
+        heapq.heappush(heap, (d, alpha.get(node, 0), repr(node), node))
 
     U0: Dict[Node, Dist] = {}
 
     while heap and len(U0) <= k:
-        d, u = heapq.heappop(heap)
+        d, _a, _r, u = heapq.heappop(heap)
         if u in U0 or d > dist_est[u]:
             continue  # already processed or stale entry
         U0[u] = dist_est[u]
 
-        for v in graph.successors(u):
-            w = graph[u][v].get('weight', 1)
-            candidate = dist_est[u] + w
-            if candidate <= dist_est[v] and candidate < B:
+        d_u = dist_est[u]
+        for v, w in adj[u]:
+            candidate = d_u + w
+            if candidate < B and _should_relax(candidate, v, u, dist_est, pred, alpha):
                 dist_est[v] = candidate
-                heapq.heappush(heap, (candidate, v))
+                pred[v] = u
+                alpha[v] = alpha.get(u, 0) + 1
+                heapq.heappush(heap, (candidate, alpha[v], repr(v), v))
 
     if len(U0) <= k:
         # Fewer than k+1 vertices found — successful, return B
         return B, U0
 
-    # k+1 vertices found — partial, set B' = max dist in U0
-    B_prime = max(dist_est[u] for u in U0)
-    U = {u: dist_est[u] for u in U0 if dist_est[u] < B_prime}
+    # k+1 vertices found — partial execution.
+    # Paper Algorithm 2, lines 16-17:
+    #   B' = max_{v in U0} d̂[v];  U = {v in U0 : d̂[v] < B'}
+    #
+    # Under Assumption 2.1 all distances are unique, so exactly one node
+    # has the maximum and U contains k nodes.  We use sorted selection
+    # which is equivalent and handles any residual ties correctly.
+    sorted_nodes = sorted(U0.keys(), key=lambda u: (dist_est[u], alpha.get(u, 0), repr(u)))
+    keep = sorted_nodes[:k]
+    B_prime = dist_est[sorted_nodes[k]]
+    U = {u: dist_est[u] for u in keep}
     return B_prime, U
 
 
@@ -297,9 +300,11 @@ def _bmssp(
     B: Dist,
     S: Dict[Node, Dist],
     dist_est: DistMap,
-    graph: nx.DiGraph,
+    adj: AdjList,
     k: int,
     t: int,
+    pred: PredMap,
+    alpha: AlphaMap,
 ) -> Tuple[Dist, Dict[Node, Dist]]:
     """Algorithm 3: BMSSP(l, B, S) → (B', U).
 
@@ -310,8 +315,10 @@ def _bmssp(
         B:        distance upper bound
         S:        set of pivot vertices {node: dist_est[node]}
         dist_est: global mutable distance-estimate map
-        graph:    directed graph
+        adj:      precomputed adjacency list {node: [(neighbour, weight), ...]}
         k, t:     algorithm parameters
+        pred:     global mutable predecessor map (Assumption 2.1)
+        alpha:    global mutable hop-count map (Assumption 2.1)
 
     Returns:
         B': updated boundary
@@ -319,14 +326,14 @@ def _bmssp(
     """
     # --- Base case ---
     if l == 0:
-        return _base_case(B, S, dist_est, graph, k)
+        return _base_case(B, S, dist_est, adj, k, pred, alpha)
 
     # --- FindPivots ---
-    P, W = _find_pivots(B, S, dist_est, graph, k)
+    P, W = _find_pivots(B, S, dist_est, adj, k, pred, alpha)
 
     # --- Initialise data structure D ---
     M = max(1, 2 ** ((l - 1) * t))
-    D = _SimpleD(M=M, B=B)
+    D = BlockHeap(M=M, B=B)
     for node, d in P.items():
         D.insert(node, d)
 
@@ -346,24 +353,32 @@ def _bmssp(
         S_i, B_i = D.pull(M)
 
         # Recursive call on level l-1
-        B_i_prime, U_i = _bmssp(l - 1, B_i, S_i, dist_est, graph, k, t)
+        B_i_prime, U_i = _bmssp(l - 1, B_i, S_i, dist_est, adj, k, t, pred, alpha)
 
         U.update(U_i)
 
         K: list = []
 
-        # Relax outgoing edges from newly completed vertices
+        # Relax outgoing edges from newly completed vertices.
         for u in U_i:
-            for v in graph.successors(u):
-                w = graph[u][v].get('weight', 1)
-                candidate = dist_est[u] + w
-                if candidate <= dist_est[v]:
+            d_u = dist_est[u]
+            for v, w in adj[u]:
+                candidate = d_u + w
+                if _should_relax(candidate, v, u, dist_est, pred, alpha):
                     dist_est[v] = candidate
-                    if v not in U:
-                        if candidate >= B_i and candidate < B:
-                            D.insert(v, candidate)
-                        elif candidate >= B_i_prime and candidate < B_i:
-                            K.append((v, candidate))
+                    pred[v] = u
+                    alpha[v] = alpha.get(u, 0) + 1
+                    # If v was already finalized with a worse distance,
+                    # remove from U and re-queue for reprocessing.
+                    if v in U and candidate < U[v]:
+                        del U[v]
+                if candidate <= dist_est[v] and v not in U and candidate < B:
+                    if candidate >= B_i:
+                        D.insert(v, candidate)
+                    elif candidate >= B_i_prime:
+                        K.append((v, candidate))
+                    else:
+                        D.insert(v, candidate)
 
         # Batch-prepend S_i nodes in [B_i_prime, B_i) that aren't done yet.
         # Skip when B_i == B: the sub-call saw B as its upper bound and
@@ -387,17 +402,37 @@ def _bmssp(
     # Partial:    return B_i_prime (tighter boundary found)
     B_final = B if successful else min(B_i_prime, B)
 
-    # Collect W nodes that are within the final boundary and relax their edges,
-    # so that any node reachable via W is also relaxed before returning.
+    # Add W nodes within the final boundary to U (Algorithm 3, line 22)
+    # and propagate their edges.  W nodes were relaxed by FindPivots but
+    # never entered D/BaseCase, so their outgoing edges need processing.
+    # We use a heap-driven sweep to propagate in distance order, ensuring
+    # downstream nodes also receive correct distances.
+    prop_heap: list = []
     for node in W:
-        if dist_est[node] < B_final and node not in U:
+        if node not in U and dist_est[node] < B_final:
             U[node] = dist_est[node]
-            # Relax outgoing edges of newly collected W nodes
-            for v in graph.successors(node):
-                w = graph[node][v].get('weight', 1)
-                candidate = dist_est[node] + w
-                if candidate <= dist_est[v]:
-                    dist_est[v] = candidate
+            heapq.heappush(prop_heap, (dist_est[node], node))
+
+    while prop_heap:
+        d_u, u = heapq.heappop(prop_heap)
+        if d_u > dist_est[u]:
+            continue
+        for v, w in adj[u]:
+            candidate = d_u + w
+            if candidate >= B_final:
+                continue
+            if _should_relax(candidate, v, u, dist_est, pred, alpha):
+                dist_est[v] = candidate
+                pred[v] = u
+                alpha[v] = alpha.get(u, 0) + 1
+                if v in U and candidate < U[v]:
+                    del U[v]
+                if v not in U:
+                    U[v] = candidate
+                    heapq.heappush(prop_heap, (candidate, v))
+            elif v not in U and dist_est[v] < B_final and dist_est[v] < float('inf'):
+                U[v] = dist_est[v]
+                heapq.heappush(prop_heap, (dist_est[v], v))
 
     return B_final, U
 
@@ -449,37 +484,46 @@ def breaking_barrier_sssp(
     validate_graph(graph, "breaking_barrier_sssp")
     validate_source(graph, source)
 
-    # Validate all edge weights upfront
+    # --- Weight validation on original graph ---
+    from logarithma.algorithms.exceptions import NegativeWeightError
     for u, v, data in graph.edges(data=True):
-        validate_weight(u, v, data.get('weight', 1), "breaking_barrier_sssp")
+        w = data.get('weight', 1)
+        if w < 0:
+            raise NegativeWeightError(u, v, w, "breaking_barrier_sssp")
 
-    n = graph.number_of_nodes()
+    # --- Constant-degree transform (§2, p.3) ---
+    #
+    # The paper assumes a graph with constant in/out-degrees (≤ 2).
+    # We apply the classical Frederickson 1983 vertex-splitting transform:
+    # each vertex v is replaced by a cycle of deg(v) nodes connected with
+    # zero-weight edges.  This preserves shortest-path distances while
+    # ensuring the algorithm's theoretical guarantees hold.
+    G_prime, source_prime, node_map = to_constant_degree(graph, source)
+
+    # --- Build adjacency list on transformed graph ---
+    raw_adj = G_prime._adj
+    adj: AdjList = {}
+    for u, nbrs in raw_adj.items():
+        neighbours = []
+        for v, data in nbrs.items():
+            neighbours.append((v, float(data.get('weight', 1))))
+        adj[u] = neighbours
+
+    n = G_prime.number_of_nodes()
     k, t, l = _compute_params(n)
 
     # Global mutable distance estimates (d̃ in the paper)
-    dist_est: DistMap = {node: float('inf') for node in graph.nodes()}
-    dist_est[source] = 0.0
+    dist_est: DistMap = {node: float('inf') for node in G_prime.nodes()}
+    dist_est[source_prime] = 0.0
 
-    # Top-level call: BMSSP(l, B=inf, S={source})
-    S_init = {source: 0.0}
-    _bmssp(l, float('inf'), S_init, dist_est, graph, k, t)
+    # Assumption 2.1 — predecessor and hop-count maps for tiebreaking
+    pred: PredMap = {source_prime: None}
+    alpha_map: AlphaMap = {source_prime: 0}
 
-    # PoC convergence pass: one Bellman-Ford sweep over all edges to catch
-    # any dist_est values that were set but not yet propagated through the
-    # recursive structure.  This does not affect asymptotic correctness of
-    # the paper's algorithm; it compensates for PoC approximations in the
-    # data structure and W-collection logic.
-    changed = True
-    while changed:
-        changed = False
-        for u, v, data in graph.edges(data=True):
-            if dist_est[u] == float('inf'):
-                continue
-            w = data.get('weight', 1)
-            candidate = dist_est[u] + w
-            if candidate < dist_est[v]:
-                dist_est[v] = candidate
-                changed = True
+    # Top-level call: BMSSP(l, B=inf, S={source'})
+    S_init = {source_prime: 0.0}
+    _bmssp(l, float('inf'), S_init, dist_est, adj, k, t, pred, alpha_map)
 
-    # Return only reachable vertices
-    return {node: d for node, d in dist_est.items() if d < float('inf')}
+    # --- Map distances back to original vertices ---
+    dist_prime = {node: d for node, d in dist_est.items() if d < float('inf')}
+    return map_distances_back(dist_prime, node_map)

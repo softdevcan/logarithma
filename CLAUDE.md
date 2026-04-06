@@ -12,7 +12,7 @@
 
 ---
 
-## Mevcut Durum (Mart 2026)
+## Mevcut Durum (Nisan 2026)
 
 ### Versiyon: 0.4.0
 
@@ -32,13 +32,16 @@
 | `mst` | `kruskal_mst()`, `prim_mst()` | ✅ v0.4.0 |
 | `network_flow` | `max_flow()` (Edmonds-Karp) | ✅ v0.4.0 |
 | `graph_properties` | `tarjan_scc()`, `topological_sort()` | ✅ v0.4.0 |
+| `breaking_barrier` | `breaking_barrier_sssp()` | 🔧 v0.5.0-dev |
+| `block_heap` | `BlockHeap` (Lemma 3.3 veri yapısı) | 🔧 v0.5.0-dev |
+| `graph_transform` | `to_constant_degree()`, `map_distances_back()` | 🔧 v0.5.0-dev |
 
-**Unit test toplamı: 182**
+**Unit test toplamı: 281**
 
 ### Henüz Yapılmamışlar (Roadmap)
 
 - ❌ Floyd-Warshall / Johnson's
-- 🎯 **Breaking the Sorting Barrier SSSP** (arXiv:2504.17033v2) — ANA HEDEF
+- 🔧 **Breaking the Sorting Barrier SSSP** (arXiv:2504.17033v2) — ANA HEDEF, algoritma çalışıyor (99/99 test), public API export + benchmark kalan
 
 ---
 
@@ -54,7 +57,10 @@ logarithma/
 │   │   │   ├── dijkstra.py       # dijkstra + dijkstra_with_path
 │   │   │   ├── astar.py          # astar + astar_with_stats + 3 heuristic
 │   │   │   ├── bellman_ford.py   # bellman_ford + bellman_ford_path
-│   │   │   └── bidirectional_dijkstra.py
+│   │   │   ├── bidirectional_dijkstra.py
+│   │   │   ├── breaking_barrier.py   # O(m log^{2/3} n) SSSP — Duan et al. 2025
+│   │   │   ├── block_heap.py         # BlockHeap (Lemma 3.3) — D0/D1 veri yapısı
+│   │   │   └── graph_transform.py    # Constant-degree transform (Frederickson 1983)
 │   │   ├── traversal/
 │   │   │   ├── bfs.py            # bfs + bfs_path
 │   │   │   └── dfs.py            # dfs + dfs_path + detect_cycle
@@ -82,6 +88,8 @@ logarithma/
 ├── tests/
 │   ├── unit/
 │   │   ├── test_dijkstra.py
+│   │   ├── test_breaking_barrier.py  # 63 test — Dijkstra karşılaştırmalı
+│   │   ├── test_graph_transform.py   # 36 test — constant-degree transform
 │   │   ├── test_visualization.py
 │   │   ├── test_kruskal.py
 │   │   ├── test_prim.py
@@ -105,6 +113,8 @@ logarithma/
 ├── docs/
 │   ├── ALGORITHM_ROADMAP.md
 │   ├── breaking_barrier_research.md
+│   ├── breaking_barrier_implementation_plan.md  # v3.0 detaylı plan
+│   ├── breaking_barrier_walkthrough.md          # n=8 elle çalıştırma
 │   └── PROJECT_STRUCTURE.md
 ├── pyproject.toml
 ├── CHANGELOG.md
@@ -126,6 +136,7 @@ lg.astar_with_stats(G, source, target, heuristic=None)
 lg.bellman_ford(G, source)
 lg.bellman_ford_path(G, source, target)
 lg.bidirectional_dijkstra(G, source, target)
+lg.breaking_barrier_sssp(G, source)  # O(m log^{2/3} n) — v0.5.0-dev
 
 # Traversal
 lg.bfs(G, source)
@@ -337,7 +348,7 @@ flake8 src/
 | Faz 2 | v0.3.0 | A*, Bellman-Ford, Bidirectional Dijkstra | ✅ Tamamlandı |
 | Faz 2.x | v0.3.x | Algoritma-spesifik visualization, DFS tree viz, error handling | ✅ Tamamlandı |
 | Faz 3 | v0.4.0 | MST (Kruskal/Prim), Network Flow, SCC, Topological Sort | ✅ Tamamlandı |
-| Faz 4 | v0.5.0 | **Breaking the Sorting Barrier SSSP** | 🎯 ANA HEDEF |
+| Faz 4 | v0.5.0 | **Breaking the Sorting Barrier SSSP** | 🔧 Algoritma çalışıyor, API export + benchmark kalan |
 | Faz 5 | v0.6.0 | Cython optimizasyonu, paralel işleme | 📋 Planlandı |
 | Faz 6 | v1.0.0 | Domain modülleri, production release | 📋 Planlandı |
 
@@ -348,11 +359,42 @@ flake8 src/
 ## Breaking the Sorting Barrier — Ana Hedef
 
 **Makale**: Duan, Mao, Mao, Shu, Yin (2025) — arXiv:2504.17033v2
-**Kompleksite hedefi**: Dijkstra'nın O(m + n log n) sınırını kırmak
-**Kapsam**: Directed graphs, non-negative integer weights
+**Kompleksite hedefi**: Dijkstra'nın O(m + n log n) sınırını kırmak → O(m log^{2/3} n)
+**Kapsam**: Directed graphs, non-negative real weights
 
-Makale henüz detaylı incelenmedi. Implementasyon planı `docs/breaking_barrier_research.md` içinde.
-Makale PDF'i: `docs/Breaking the Sorting Barrier for Directed Single-Source Shortest.pdf`
+### Mevcut Durum
+
+Algoritma çalışıyor — 63 breaking_barrier + 36 graph_transform = **99/99 test geçiyor**.
+Dijkstra'ya karşı 30 random küçük, 10 medium, 5 büyük graf ile doğrulandı.
+
+### Dosyalar
+
+| Dosya | İçerik | Durum |
+|-------|--------|-------|
+| `breaking_barrier.py` | FindPivots + BaseCase + BMSSP + A2.1 + W-propagation | ✅ Çalışıyor |
+| `block_heap.py` | BlockHeap (Lemma 3.3) — D0/D1 block-linked-list | ✅ Stabil |
+| `graph_transform.py` | `to_constant_degree` + `map_distances_back` | ✅ Stabil |
+
+### Bileşenler
+
+| Bileşen | Makale Referansı | Durum |
+|---------|-----------------|-------|
+| FindPivots | Algorithm 1, §3.1 | ✅ + A2.1 forest garantisi |
+| BaseCase | Algorithm 2, §3.1 | ✅ + A2.1 heap tiebreaking |
+| BMSSP | Algorithm 3, §3.1 | ✅ + scheduling/relaxation ayrımı |
+| BlockHeap | Lemma 3.3 | ✅ D0/D1 |
+| Constant-degree transform | §2, Frederickson 1983 | ✅ 36/36 test |
+| Assumption 2.1 | §2 s.4 | ✅ pred[]/alpha[] + lexicographic tiebreaking |
+| W-sweep propagation | Algorithm 3 satır 22 genişletmesi | ✅ Transform impl. detayı |
+
+### Kalan İşler
+
+- [ ] Public API export (`__init__.py` chain)
+- [ ] Benchmark (Dijkstra karşılaştırma, n scaling)
+- [ ] v0.5.0 release
+
+**Detaylı plan**: `docs/breaking_barrier_implementation_plan.md`
+**Makale PDF**: `docs/Breaking the Sorting Barrier for Directed Single-Source Shortest.pdf`
 
 ---
 
@@ -362,6 +404,7 @@ Makale PDF'i: `docs/Breaking the Sorting Barrier for Directed Single-Source Shor
 2. Dijkstra'da `graph.neighbors()` kullanımı — DiGraph'ta sadece out-edges döner, bu beklenen davranış.
 3. Yeni visualization fonksiyonları (`mst_viz.py`, `flow_viz.py`, `graph_properties_viz.py`) için unit test henüz yazılmadı.
 4. `prim.py` içindeki `_find_component` fonksiyonu dead code — bir sonraki cleanup'ta silinebilir.
+5. `breaking_barrier_sssp` henüz top-level public API'ye export edilmedi — v0.5.0'da yapılacak.
 
 ---
 
