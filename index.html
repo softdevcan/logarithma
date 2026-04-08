@@ -304,6 +304,7 @@
     <a href="#quickstart">Quick Start</a>
     <a href="#algorithms">Algorithms</a>
     <a href="#floyd-warshall">APSP</a>
+    <a href="#breaking-barrier">Breaking Barrier</a>
     <a href="#mst">MST</a>
     <a href="#network-flow">Flow</a>
     <a href="#changelog">Changelog</a>
@@ -335,6 +336,7 @@
       <a href="#bidir">Bidirectional Dijkstra</a>
       <a href="#floyd-warshall">Floyd-Warshall</a>
       <a href="#johnson">Johnson's</a>
+      <a href="#breaking-barrier">Breaking Barrier</a>
     </div>
     <div class="sidebar-group">
       <div class="sidebar-label">Graph Traversal</div>
@@ -522,6 +524,12 @@ print(result['distances']['A']['D'])   # same result, faster on sparse graphs</c
           <div class="algo-card-complexity">O(V² log V + VE)</div>
           <div class="algo-card-desc">All-pairs shortest paths optimized for sparse graphs. Bellman-Ford + Dijkstra.</div>
           <div class="algo-card-usecase"><strong>Use for:</strong> Sparse graphs with negative weights, better than Floyd-Warshall when E ≪ V².</div>
+        </div>
+        <div class="algo-card">
+          <div class="algo-card-name">Breaking Barrier SSSP</div>
+          <div class="algo-card-complexity">O(m log²/³ n) — beyond sorting barrier</div>
+          <div class="algo-card-desc">First Python impl. of Duan et al. 2025. Directed SSSP faster than Dijkstra asymptotically.</div>
+          <div class="algo-card-usecase"><strong>Use for:</strong> Research, large-scale directed sparse graphs, benchmarking against Dijkstra.</div>
         </div>
         <div class="algo-card">
           <div class="algo-card-name">BFS</div>
@@ -1352,6 +1360,163 @@ print(path)   # ['A', 'B', 'C', 'D']</code></pre>
               <td><strong>Simpler code</strong></td>
               <td>Yes (3 nested loops)</td>
               <td>No (BF + V×Dijkstra)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- BREAKING BARRIER SSSP -->
+    <section id="breaking-barrier">
+      <h2>Breaking the Sorting Barrier SSSP</h2>
+      <p>
+        The first Python implementation of <strong>Duan, Mao, Mao, Shu, Yin (2025)</strong>
+        — arXiv:2504.17033v2 (STOC 2025 Best Paper). Breaks Dijkstra's classical
+        <code>O(m + n log n)</code> sorting barrier for directed single-source shortest paths.
+      </p>
+      <div class="callout callout-info">
+        <div class="callout-icon">🎯</div>
+        <div class="callout-body">
+          <strong>When to use:</strong> Research and benchmarking on <strong>directed sparse graphs</strong>
+          with non-negative weights. The algorithm is asymptotically faster than Dijkstra
+          (<code>O(m log²/³ n)</code> vs <code>O(m + n log n)</code>) but has a higher constant factor
+          — the practical crossover requires very large n. Use Dijkstra for production workloads
+          unless graph scale justifies the overhead.
+        </div>
+      </div>
+
+      <h3>breaking_barrier_sssp(graph, source)</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">python</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="language-python">import logarithma as lg
+import networkx as nx
+
+G = nx.DiGraph()
+G.add_edge('s', 'A', weight=2)
+G.add_edge('s', 'B', weight=5)
+G.add_edge('A', 'C', weight=1)
+G.add_edge('B', 'C', weight=2)
+
+distances = lg.breaking_barrier_sssp(G, 's')
+print(distances)
+# {'s': 0, 'A': 2, 'B': 5, 'C': 3}
+
+# Results match Dijkstra — verify on any graph
+dijkstra_dist = lg.dijkstra(G, 's')
+assert distances == dijkstra_dist</code></pre>
+      </div>
+
+      <h3>Cython Acceleration (v0.6.0)</h3>
+      <p>
+        Optional Cython extensions provide <strong>5–7× speedup</strong> over pure Python.
+        Falls back automatically when extensions are not compiled.
+      </p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">bash</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="language-bash"># Install Cython and compile extensions
+pip install "logarithma[fast]"
+python setup_ext.py build_ext --inplace</code></pre>
+      </div>
+
+      <h3>Performance — Breaking Barrier vs Dijkstra</h3>
+      <p>
+        Benchmarks on sparse directed graphs (m ≈ 2n). The ratio shows how many times
+        slower Breaking Barrier is compared to Dijkstra — the gap narrows as n grows,
+        reflecting the asymptotic advantage.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>n (nodes)</th>
+              <th>Dijkstra</th>
+              <th>Breaking Barrier (v0.6.0)</th>
+              <th>Ratio</th>
+              <th>v0.5.0 → v0.6.0</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>500</strong></td>
+              <td><code>0.8 ms</code></td>
+              <td><code>61 ms</code></td>
+              <td>75×</td>
+              <td>99× → 75× (~24% faster)</td>
+            </tr>
+            <tr>
+              <td><strong>1,000</strong></td>
+              <td><code>1.7 ms</code></td>
+              <td><code>47 ms</code></td>
+              <td>26×</td>
+              <td>129× → 26× (<strong>~5× faster</strong>)</td>
+            </tr>
+            <tr>
+              <td><strong>2,000</strong></td>
+              <td><code>3.4 ms</code></td>
+              <td><code>74 ms</code></td>
+              <td>21×</td>
+              <td>162× → 21× (<strong>~7× faster</strong>)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout callout-warn">
+        <div class="callout-icon">⚠️</div>
+        <div class="callout-body">
+          <strong>Constant factor note:</strong> The algorithm's O(m log²/³ n) complexity is
+          asymptotically superior, but the recursive BMSSP framework, BlockHeap data structure,
+          and constant-degree graph transform carry significant overhead. The practical crossover
+          point (where Breaking Barrier becomes faster than Dijkstra) requires very large n.
+          Cython acceleration reduces this gap substantially.
+        </div>
+      </div>
+
+      <h3>Algorithm Components</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Component</th>
+              <th>Paper Reference</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>FindPivots</strong></td>
+              <td>Algorithm 1, §3.1</td>
+              <td>k-step Bellman-Ford + pivot selection</td>
+            </tr>
+            <tr>
+              <td><strong>BaseCase</strong></td>
+              <td>Algorithm 2, §3.1</td>
+              <td>Mini Dijkstra for k+1 vertices</td>
+            </tr>
+            <tr>
+              <td><strong>BMSSP</strong></td>
+              <td>Algorithm 3, §3.1</td>
+              <td>Recursive bounded multi-source driver</td>
+            </tr>
+            <tr>
+              <td><strong>BlockHeap</strong></td>
+              <td>Lemma 3.3</td>
+              <td>D0/D1 block-linked-list data structure</td>
+            </tr>
+            <tr>
+              <td><strong>Constant-degree transform</strong></td>
+              <td>§2, Frederickson 1983</td>
+              <td>Graph preprocessing for theoretical guarantees</td>
+            </tr>
+            <tr>
+              <td><strong>Assumption 2.1</strong></td>
+              <td>§2 s.4</td>
+              <td>Lexicographic tiebreaking for deterministic predecessor forest</td>
             </tr>
           </tbody>
         </table>
