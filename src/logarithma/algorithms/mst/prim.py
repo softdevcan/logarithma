@@ -89,18 +89,6 @@ def prim_mst(
         if node not in visited:
             _run_from(node)
 
-    # Count components
-    uf_roots: Dict[Any, Any] = {}
-    for u, v, _ in mst_edges:
-        # Simple union-find inline for component counting
-        uf_roots.setdefault(u, u)
-        uf_roots.setdefault(v, v)
-    # Each isolated node (no edges added) is its own component
-    component_roots = set()
-    for node in graph.nodes():
-        # Find which edges touch this node
-        component_roots.add(_find_component(node, mst_edges, set(graph.nodes())))
-
     return {
         'mst_edges': mst_edges,
         'total_weight': total_weight,
@@ -129,6 +117,3 @@ def _count_components(graph: nx.Graph, mst_edges: List[Tuple]) -> int:
     return len({find(n) for n in graph.nodes()})
 
 
-def _find_component(node: Any, mst_edges: List[Tuple], all_nodes: set) -> Any:
-    """Placeholder — not actually called; component counting is inlined."""
-    return node

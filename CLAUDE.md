@@ -37,12 +37,14 @@
 | `graph_transform` | `to_constant_degree()`, `map_distances_back()` | ✅ v0.5.0 |
 | `block_heap.pyx` | Cython BlockHeap — cdef classes, C-level doubles | ✅ v0.6.0 |
 | `breaking_barrier_core.pyx` | Cython core — typed memoryviews, `nogil` relax | ✅ v0.6.0 |
+| `floyd_warshall` | `floyd_warshall()`, `floyd_warshall_path()` | ✅ v0.6.0 |
+| `johnson` | `johnson()`, `johnson_path()` | ✅ v0.6.0 |
 
-**Unit test toplamı: 281**
+**Unit test toplamı: 339**
 
 ### Henüz Yapılmamışlar (Roadmap)
 
-- ❌ Floyd-Warshall / Johnson's
+- (APSP tamamlandı — Floyd-Warshall + Johnson's)
 
 ---
 
@@ -63,7 +65,9 @@ logarithma/
 │   │   │   ├── breaking_barrier_core.pyx # Cython core: _should_relax/FindPivots/BMSSP
 │   │   │   ├── block_heap.py             # BlockHeap (Lemma 3.3) — D0/D1 veri yapısı
 │   │   │   ├── block_heap.pyx            # Cython BlockHeap — cdef classes
-│   │   │   └── graph_transform.py        # Constant-degree transform (Frederickson 1983)
+│   │   │   ├── graph_transform.py        # Constant-degree transform (Frederickson 1983)
+│   │   │   ├── floyd_warshall.py         # floyd_warshall + floyd_warshall_path (O(V³) APSP)
+│   │   │   └── johnson.py               # johnson + johnson_path (O(V²logV + VE) APSP)
 │   │   ├── traversal/
 │   │   │   ├── bfs.py            # bfs + bfs_path
 │   │   │   └── dfs.py            # dfs + dfs_path + detect_cycle
@@ -98,6 +102,8 @@ logarithma/
 │   │   ├── test_prim.py
 │   │   ├── test_max_flow.py
 │   │   ├── test_tarjan_scc.py
+│   │   ├── test_floyd_warshall.py
+│   │   ├── test_johnson.py
 │   │   └── test_topological_sort.py
 │   ├── integration/
 │   │   └── test_viz_integration.py
@@ -141,6 +147,12 @@ lg.bellman_ford(G, source)
 lg.bellman_ford_path(G, source, target)
 lg.bidirectional_dijkstra(G, source, target)
 lg.breaking_barrier_sssp(G, source)  # O(m log^{2/3} n) — v0.5.0, Cython accel v0.6.0
+
+# All-Pairs Shortest Path
+lg.floyd_warshall(G)                 # O(V³) — dense graphs, negative weights
+lg.floyd_warshall_path(G, source, target)
+lg.johnson(G)                        # O(V² log V + VE) — sparse graphs, negative weights
+lg.johnson_path(G, source, target)
 
 # Traversal
 lg.bfs(G, source)
@@ -358,7 +370,7 @@ flake8 src/
 | Faz 2.x | v0.3.x | Algoritma-spesifik visualization, DFS tree viz, error handling | ✅ Tamamlandı |
 | Faz 3 | v0.4.0 | MST (Kruskal/Prim), Network Flow, SCC, Topological Sort | ✅ Tamamlandı |
 | Faz 4 | v0.5.0 | **Breaking the Sorting Barrier SSSP** | ✅ Tamamlandı |
-| Faz 5 | v0.6.0 | **Cython optimizasyonu** | ✅ Tamamlandı |
+| Faz 5 | v0.6.0 | **Cython optimizasyonu**, Floyd-Warshall, Johnson's | ✅ Tamamlandı |
 | Faz 6 | v1.0.0 | Domain modülleri, production release | 📋 Planlandı |
 
 **Hedef v1.0.0**: Eylül 2026
@@ -422,7 +434,7 @@ Dijkstra'ya karşı 30 random küçük, 10 medium, 5 büyük graf ile doğruland
 1. **test_viz_integration.py** — `matplotlib` yüklü olmayan ortamlarda import hatası verir; integration testler `pytest tests/unit/` ile ayrı çalıştırılmalı.
 2. Dijkstra'da `graph.neighbors()` kullanımı — DiGraph'ta sadece out-edges döner, bu beklenen davranış.
 3. Yeni visualization fonksiyonları (`mst_viz.py`, `flow_viz.py`, `graph_properties_viz.py`) için unit test henüz yazılmadı.
-4. `prim.py` içindeki `_find_component` fonksiyonu dead code — bir sonraki cleanup'ta silinebilir.
+4. ~~`prim.py` `_find_component` dead code~~ — **Temizlendi** (v0.6.0).
 5. `breaking_barrier_sssp` Cython ile n=1000 için ~26x (Dijkstra'ya göre) — constant factor hâlâ büyük. Pratik crossover çok yüksek n gerektirir. v1.0.0'da paralel işleme ile daha da iyileştirilebilir.
 6. Cython `.pyx` dosyaları Windows'ta `cl.exe` (MSVC) gerektiriyor — Linux/Mac'te `gcc` ile otomatik derlenir. `.pyd` dosyaları platform-specific, binary dağıtım için wheel build gerekir.
 7. `block_heap_cy` modülü şu an `breaking_barrier.py` tarafından direkt kullanılmıyor (sadece `breaking_barrier_core.pyx` içinden); ileride BlockHeap'in pure Python versiyonu tamamen Cython ile replace edilebilir.

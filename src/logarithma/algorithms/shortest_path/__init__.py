@@ -12,9 +12,11 @@ Available algorithms:
     bellman_ford          — O(VE), supports negative weights + cycle detection
     bellman_ford_path     — Bellman-Ford with path reconstruction
     bidirectional_dijkstra— O(E + V log V), ~2x faster for point-to-point
-
-Available (continued):
     breaking_barrier_sssp — O(m log^{2/3} n), directed SSSP (Duan et al. 2025)
+    floyd_warshall        — O(V³), all-pairs SP, supports negative weights
+    floyd_warshall_path   — Floyd-Warshall with path reconstruction
+    johnson               — O(V² log V + VE), all-pairs SP for sparse graphs
+    johnson_path          — Johnson's with path reconstruction
 """
 
 from .dijkstra import dijkstra, dijkstra_with_path
@@ -37,6 +39,8 @@ from logarithma.algorithms.exceptions import (
 )
 from .bidirectional_dijkstra import bidirectional_dijkstra
 from .breaking_barrier import breaking_barrier_sssp
+from .floyd_warshall import floyd_warshall, floyd_warshall_path
+from .johnson import johnson, johnson_path
 
 __all__ = [
     # Dijkstra
@@ -56,6 +60,11 @@ __all__ = [
     'bidirectional_dijkstra',
     # Breaking the Sorting Barrier
     'breaking_barrier_sssp',
+    # All-Pairs Shortest Path
+    'floyd_warshall',
+    'floyd_warshall_path',
+    'johnson',
+    'johnson_path',
     # Exceptions
     'GraphError',
     'EmptyGraphError',

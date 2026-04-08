@@ -228,6 +228,10 @@
       color: var(--accent3); margin-bottom: .5rem;
     }
     .algo-card-desc { font-size: .82rem; color: var(--muted); }
+    .algo-card-usecase {
+      font-size: .78rem; color: var(--accent2); margin-top: .4rem;
+      padding-top: .4rem; border-top: 1px solid var(--border);
+    }
 
     /* ── CALLOUT ─────────────────────────────────────────────── */
     .callout {
@@ -299,6 +303,7 @@
     <a href="#installation">Installation</a>
     <a href="#quickstart">Quick Start</a>
     <a href="#algorithms">Algorithms</a>
+    <a href="#floyd-warshall">APSP</a>
     <a href="#mst">MST</a>
     <a href="#network-flow">Flow</a>
     <a href="#changelog">Changelog</a>
@@ -328,6 +333,8 @@
       <a href="#astar">A*</a>
       <a href="#bellman-ford">Bellman-Ford</a>
       <a href="#bidir">Bidirectional Dijkstra</a>
+      <a href="#floyd-warshall">Floyd-Warshall</a>
+      <a href="#johnson">Johnson's</a>
     </div>
     <div class="sidebar-group">
       <div class="sidebar-label">Graph Traversal</div>
@@ -374,7 +381,7 @@
         <span class="badge badge-blue">v0.6.0</span>
         <span class="badge badge-green">Python 3.8+</span>
         <span class="badge badge-yellow">MIT License</span>
-        <span class="badge badge-blue">281 Tests</span>
+        <span class="badge badge-blue">339 Tests</span>
         <span class="badge badge-green">Cython Accelerated</span>
       </div>
       <div class="hero-actions">
@@ -464,7 +471,15 @@ print(flow['max_flow_value'])  # 10
 # Tarjan SCC
 DG2 = nx.DiGraph([('A','B'), ('B','C'), ('C','A')])
 sccs = lg.tarjan_scc(DG2)
-print(sccs)   # [['A', 'B', 'C']]</code></pre>
+print(sccs)   # [['A', 'B', 'C']]
+
+# Floyd-Warshall — all-pairs shortest paths
+result = lg.floyd_warshall(G)
+print(result['distances']['A']['D'])   # shortest distance A→D
+
+# Johnson's — all-pairs for sparse graphs
+result = lg.johnson(G)
+print(result['distances']['A']['D'])   # same result, faster on sparse graphs</code></pre>
       </div>
     </section>
 
@@ -475,57 +490,80 @@ print(sccs)   # [['A', 'B', 'C']]</code></pre>
         <div class="algo-card">
           <div class="algo-card-name">Dijkstra</div>
           <div class="algo-card-complexity">O(E + V log V)</div>
-          <div class="algo-card-desc">Classic shortest path. Non-negative weights. Directed &amp; undirected.</div>
+          <div class="algo-card-desc">Classic single-source shortest path. Non-negative weights. Directed &amp; undirected.</div>
+          <div class="algo-card-usecase"><strong>Use for:</strong> GPS navigation, network routing, weighted graph distance queries.</div>
         </div>
         <div class="algo-card">
           <div class="algo-card-name">A* (A-Star)</div>
           <div class="algo-card-complexity">O(b^d) — heuristic-guided</div>
           <div class="algo-card-desc">Faster point-to-point with Euclidean, Manhattan or Haversine heuristic.</div>
+          <div class="algo-card-usecase"><strong>Use for:</strong> Game pathfinding, robot navigation, map routing with coordinates.</div>
         </div>
         <div class="algo-card">
           <div class="algo-card-name">Bellman-Ford</div>
           <div class="algo-card-complexity">O(V · E)</div>
           <div class="algo-card-desc">Negative-weight edges. Negative-cycle detection with full cycle info.</div>
+          <div class="algo-card-usecase"><strong>Use for:</strong> Currency arbitrage detection, financial modeling, distributed routing (RIP).</div>
         </div>
         <div class="algo-card">
           <div class="algo-card-name">Bidirectional Dijkstra</div>
           <div class="algo-card-complexity">O(E + V log V) — ~2× faster</div>
           <div class="algo-card-desc">Simultaneous forward/backward search. Ideal for large point-to-point queries.</div>
+          <div class="algo-card-usecase"><strong>Use for:</strong> Long-distance routing, social network distance, large road networks.</div>
+        </div>
+        <div class="algo-card">
+          <div class="algo-card-name">Floyd-Warshall</div>
+          <div class="algo-card-complexity">O(V³)</div>
+          <div class="algo-card-desc">All-pairs shortest paths via dynamic programming. Supports negative weights.</div>
+          <div class="algo-card-usecase"><strong>Use for:</strong> Dense graphs, transitive closure, graph diameter, distance matrices.</div>
+        </div>
+        <div class="algo-card">
+          <div class="algo-card-name">Johnson's</div>
+          <div class="algo-card-complexity">O(V² log V + VE)</div>
+          <div class="algo-card-desc">All-pairs shortest paths optimized for sparse graphs. Bellman-Ford + Dijkstra.</div>
+          <div class="algo-card-usecase"><strong>Use for:</strong> Sparse graphs with negative weights, better than Floyd-Warshall when E ≪ V².</div>
         </div>
         <div class="algo-card">
           <div class="algo-card-name">BFS</div>
           <div class="algo-card-complexity">O(V + E)</div>
           <div class="algo-card-desc">Level-order traversal. Optimal for unweighted shortest paths.</div>
+          <div class="algo-card-usecase"><strong>Use for:</strong> Social network degrees of separation, web crawling, shortest hop-count.</div>
         </div>
         <div class="algo-card">
           <div class="algo-card-name">DFS</div>
           <div class="algo-card-complexity">O(V + E)</div>
           <div class="algo-card-desc">Depth-first traversal. Cycle detection. Recursive &amp; iterative modes.</div>
+          <div class="algo-card-usecase"><strong>Use for:</strong> Maze solving, topological ordering, cycle detection, backtracking problems.</div>
         </div>
         <div class="algo-card">
           <div class="algo-card-name">Kruskal MST</div>
           <div class="algo-card-complexity">O(E log E)</div>
           <div class="algo-card-desc">Minimum Spanning Tree via Union-Find. Undirected graphs.</div>
+          <div class="algo-card-usecase"><strong>Use for:</strong> Network cable layout, clustering, circuit design, minimum-cost connectivity.</div>
         </div>
         <div class="algo-card">
           <div class="algo-card-name">Prim MST</div>
           <div class="algo-card-complexity">O(E + V log V)</div>
           <div class="algo-card-desc">MST via greedy min-heap expansion. Undirected graphs.</div>
+          <div class="algo-card-usecase"><strong>Use for:</strong> Dense graphs where Kruskal is slower, real-time MST construction.</div>
         </div>
         <div class="algo-card">
           <div class="algo-card-name">Max Flow (Edmonds-Karp)</div>
           <div class="algo-card-complexity">O(V · E²)</div>
           <div class="algo-card-desc">Maximum flow via BFS-based augmenting paths. Directed capacity graphs.</div>
+          <div class="algo-card-usecase"><strong>Use for:</strong> Supply chain optimization, bipartite matching, image segmentation.</div>
         </div>
         <div class="algo-card">
           <div class="algo-card-name">Tarjan SCC</div>
           <div class="algo-card-complexity">O(V + E)</div>
           <div class="algo-card-desc">Strongly connected components. Iterative DFS-based implementation.</div>
+          <div class="algo-card-usecase"><strong>Use for:</strong> Deadlock detection, compiler optimization, social network analysis.</div>
         </div>
         <div class="algo-card">
           <div class="algo-card-name">Topological Sort</div>
           <div class="algo-card-complexity">O(V + E)</div>
           <div class="algo-card-desc">Linear ordering of DAG vertices. DFS and Kahn's algorithm support.</div>
+          <div class="algo-card-usecase"><strong>Use for:</strong> Build systems (make/npm), task scheduling, course prerequisite planning.</div>
         </div>
       </div>
     </section>
@@ -537,6 +575,16 @@ print(sccs)   # [['A', 'B', 'C']]</code></pre>
         Classic single-source shortest path algorithm for graphs with
         <strong>non-negative edge weights</strong>. Works on both directed and undirected graphs.
       </p>
+      <div class="callout callout-info">
+        <div class="callout-icon">🎯</div>
+        <div class="callout-body">
+          <strong>When to use:</strong> Your default choice for shortest-path queries when all
+          edge weights are non-negative. Ideal for <strong>GPS navigation</strong>,
+          <strong>network routing protocols (OSPF)</strong>, and <strong>weighted graph distance queries</strong>.
+          If you have coordinates and a single target, consider A* instead.
+          If you need all-pairs distances, use Floyd-Warshall or Johnson's.
+        </div>
+      </div>
 
       <h3>dijkstra(graph, source)</h3>
       <p>Returns a dictionary of shortest distances from <code>source</code> to all vertices.</p>
@@ -591,6 +639,15 @@ for node, path in result['paths'].items():
         <code>h(n)</code> to direct the search toward the goal, expanding far fewer nodes
         than Dijkstra for point-to-point queries.
       </p>
+      <div class="callout callout-info">
+        <div class="callout-icon">🎯</div>
+        <div class="callout-body">
+          <strong>When to use:</strong> Best for <strong>point-to-point</strong> queries where you have
+          spatial coordinates (2D/3D positions, lat/lon).
+          Use cases: <strong>game pathfinding</strong> (NPCs, tiles), <strong>robot navigation</strong>,
+          <strong>map routing</strong> with known positions. Falls back to Dijkstra when no heuristic is given.
+        </div>
+      </div>
       <div class="callout callout-info">
         <div class="callout-icon">ℹ️</div>
         <div class="callout-body">
@@ -687,6 +744,16 @@ print(r_euc['nodes_expanded'])    # e.g. 9 — much fewer nodes visited</code></
         The only SSSP algorithm that handles <strong>negative-weight edges</strong>.
         Also detects negative-weight cycles reachable from the source.
       </p>
+      <div class="callout callout-info">
+        <div class="callout-icon">🎯</div>
+        <div class="callout-body">
+          <strong>When to use:</strong> When your graph has <strong>negative edge weights</strong>
+          (Dijkstra cannot handle these). Key use cases:
+          <strong>currency arbitrage detection</strong> (negative log-exchange cycles),
+          <strong>distributed routing protocols</strong> (RIP), and <strong>financial cost modeling</strong>
+          where costs can decrease along edges.
+        </div>
+      </div>
       <div class="callout callout-warn">
         <div class="callout-icon">⚠️</div>
         <div class="callout-body">
@@ -764,6 +831,15 @@ except NegativeCycleError:
         backward from <code>target</code> — and terminates when the frontiers meet.
         Typically <strong>~2× fewer node expansions</strong> than standard Dijkstra.
       </p>
+      <div class="callout callout-info">
+        <div class="callout-icon">🎯</div>
+        <div class="callout-body">
+          <strong>When to use:</strong> When you need a single source-to-target distance on
+          a <strong>large graph</strong> and don't have coordinate-based heuristics for A*.
+          Ideal for <strong>road network routing</strong>, <strong>social network "degrees of separation"</strong>,
+          and any <strong>large-scale point-to-point query</strong> where Dijkstra alone is too slow.
+        </div>
+      </div>
 
       <h3>bidirectional_dijkstra(graph, source, target)</h3>
       <div class="code-block">
@@ -808,6 +884,15 @@ print(result['path'])      # []</code></pre>
         Level-order traversal. Finds <strong>shortest paths by edge count</strong>
         in unweighted graphs.
       </p>
+      <div class="callout callout-info">
+        <div class="callout-icon">🎯</div>
+        <div class="callout-body">
+          <strong>When to use:</strong> Unweighted graphs where all edges have equal cost.
+          Use cases: <strong>social network degrees of separation</strong>,
+          <strong>web crawling</strong> (pages by link depth), <strong>shortest hop-count</strong>
+          in network topology, and <strong>flood fill</strong> algorithms.
+        </div>
+      </div>
 
       <h3>bfs(graph, source)</h3>
       <div class="code-block">
@@ -836,6 +921,15 @@ print(result['paths']['E'])      # ['A', 'D', 'E']</code></pre>
     <section id="dfs">
       <h2>DFS — Depth-First Search</h2>
       <p>Explores as deep as possible before backtracking. Supports recursive and iterative modes.</p>
+      <div class="callout callout-info">
+        <div class="callout-icon">🎯</div>
+        <div class="callout-body">
+          <strong>When to use:</strong> When you need to explore or classify graph structure
+          rather than find shortest paths. Use cases: <strong>cycle detection</strong>,
+          <strong>maze solving</strong>, <strong>topological preprocessing</strong>,
+          <strong>connected component discovery</strong>, and <strong>backtracking search</strong> (puzzles, CSPs).
+        </div>
+      </div>
 
       <h3>dfs(graph, source) / detect_cycle(graph)</h3>
       <div class="code-block">
@@ -880,6 +974,16 @@ print(has_cycle)  # False</code></pre>
         Both algorithms find a minimum spanning tree of an <strong>undirected weighted graph</strong>.
         Passing a directed graph raises <code>UndirectedGraphRequiredError</code>.
       </p>
+      <div class="callout callout-info">
+        <div class="callout-icon">🎯</div>
+        <div class="callout-body">
+          <strong>When to use:</strong> When you need to connect all nodes at minimum total cost.
+          Use cases: <strong>network cable/pipeline layout</strong>,
+          <strong>clustering</strong> (remove heaviest MST edges),
+          <strong>circuit design</strong>, <strong>approximation algorithms</strong> for TSP.
+          Kruskal is better for sparse graphs; Prim for dense graphs.
+        </div>
+      </div>
 
       <h3>kruskal_mst(graph)</h3>
       <p>Union-Find based greedy approach. Sorts all edges and adds the cheapest that doesn't form a cycle.</p>
@@ -936,6 +1040,15 @@ result = lg.prim_mst(G)</code></pre>
         Computes maximum flow through a directed capacity graph using the
         <strong>Edmonds-Karp algorithm</strong> (BFS-based Ford-Fulkerson).
       </p>
+      <div class="callout callout-info">
+        <div class="callout-icon">🎯</div>
+        <div class="callout-body">
+          <strong>When to use:</strong> When you need to find the maximum throughput of a network.
+          Use cases: <strong>supply chain / logistics optimization</strong>,
+          <strong>bipartite matching</strong> (job assignment),
+          <strong>image segmentation</strong> (min-cut), and <strong>network capacity planning</strong>.
+        </div>
+      </div>
 
       <h3>max_flow(graph, source, sink)</h3>
       <div class="code-block">
@@ -969,6 +1082,15 @@ result = lg.max_flow(G2, 'X', 'Y', capacity='cap')</code></pre>
     <!-- GRAPH PROPERTIES -->
     <section id="graph-properties">
       <h2>Graph Properties</h2>
+      <div class="callout callout-info">
+        <div class="callout-icon">🎯</div>
+        <div class="callout-body">
+          <strong>When to use:</strong> <strong>Tarjan SCC</strong> — deadlock detection,
+          compiler optimization (live variable analysis), social network community detection.
+          <strong>Topological Sort</strong> — build systems (make, npm, Gradle),
+          task/job scheduling, course prerequisite planning, dependency resolution.
+        </div>
+      </div>
 
       <h3>tarjan_scc(graph)</h3>
       <p>
@@ -1026,6 +1148,213 @@ try:
     topological_sort(G_cycle)
 except NotDAGError as e:
     print("Cycle found:", e.cycle)</code></pre>
+      </div>
+    </section>
+
+    <!-- FLOYD-WARSHALL -->
+    <section id="floyd-warshall">
+      <h2>Floyd-Warshall</h2>
+      <p>
+        Dynamic programming algorithm that computes <strong>all-pairs shortest paths</strong>
+        in O(V³). Supports negative edge weights and detects negative-weight cycles.
+      </p>
+      <div class="callout callout-info">
+        <div class="callout-icon">🎯</div>
+        <div class="callout-body">
+          <strong>When to use:</strong> When you need the distance between <em>every pair</em> of
+          vertices. Best for <strong>dense graphs</strong> (E ≈ V²). Use cases:
+          <strong>graph diameter / eccentricity</strong> computation,
+          <strong>transitive closure</strong>, <strong>distance matrix</strong> for clustering,
+          and <strong>network analysis</strong> (average path length). For sparse graphs, prefer Johnson's.
+        </div>
+      </div>
+
+      <h3>floyd_warshall(graph)</h3>
+      <p>Returns all-pairs distances and a predecessor matrix for path reconstruction.</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">python</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="language-python">import logarithma as lg
+import networkx as nx
+
+# ── Dense graph — all-pairs distances ─────────────────────────
+G = nx.DiGraph()
+G.add_edge('A', 'B', weight=3)
+G.add_edge('A', 'C', weight=8)
+G.add_edge('B', 'C', weight=2)
+G.add_edge('C', 'D', weight=1)
+G.add_edge('B', 'D', weight=7)
+
+result = lg.floyd_warshall(G)
+
+# Distance from A to D: A→B(3)→C(2)→D(1) = 6
+print(result['distances']['A']['D'])   # 6.0
+
+# Full distance matrix
+for u in G.nodes():
+    for v in G.nodes():
+        d = result['distances'][u][v]
+        print(f"  {u}→{v}: {d}")
+
+# ── Negative weights (no cycle) ───────────────────────────────
+G2 = nx.DiGraph()
+G2.add_edge('X', 'Y', weight=4)
+G2.add_edge('Y', 'Z', weight=-3)   # negative edge, no cycle
+G2.add_edge('X', 'Z', weight=5)
+
+result = lg.floyd_warshall(G2)
+print(result['distances']['X']['Z'])   # 1  (X→Y→Z: 4+(-3)=1)
+
+# ── Negative cycle detection ──────────────────────────────────
+from logarithma import NegativeCycleError
+
+G3 = nx.DiGraph()
+G3.add_edge('A', 'B', weight=1)
+G3.add_edge('B', 'C', weight=-3)
+G3.add_edge('C', 'A', weight=1)   # cycle total: -1
+
+try:
+    lg.floyd_warshall(G3)
+except NegativeCycleError:
+    print("Negative cycle detected!")</code></pre>
+      </div>
+
+      <h3>floyd_warshall_path(graph, source, target)</h3>
+      <p>Convenience wrapper that returns the shortest path between two vertices.</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">python</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="language-python">path = lg.floyd_warshall_path(G, 'A', 'D')
+print(path)   # ['A', 'B', 'C', 'D']
+
+# Unreachable target → empty list
+path = lg.floyd_warshall_path(G, 'D', 'A')
+print(path)   # []</code></pre>
+      </div>
+
+      <div class="callout callout-warn">
+        <div class="callout-icon">⚠️</div>
+        <div class="callout-body">
+          <strong>O(V³) complexity warning:</strong> Floyd-Warshall builds a full V×V distance matrix.
+          For sparse graphs (E ≪ V²), Johnson's algorithm is significantly faster at O(V² log V + VE).
+        </div>
+      </div>
+    </section>
+
+    <!-- JOHNSON -->
+    <section id="johnson">
+      <h2>Johnson's Algorithm</h2>
+      <p>
+        Computes <strong>all-pairs shortest paths</strong> efficiently for
+        <strong>sparse graphs</strong>. Combines Bellman-Ford (for edge reweighting) with
+        V runs of Dijkstra. Handles negative edge weights.
+      </p>
+      <div class="callout callout-info">
+        <div class="callout-icon">🎯</div>
+        <div class="callout-body">
+          <strong>When to use:</strong> All-pairs shortest paths on <strong>sparse graphs</strong>
+          (E ≪ V²), especially with negative edge weights.
+          At O(V² log V + VE) it outperforms Floyd-Warshall's O(V³) on sparse graphs.
+          Use cases: <strong>distance matrices for sparse networks</strong>,
+          <strong>all-pairs routing</strong>, and as a building block for
+          <strong>graph centrality</strong> computations.
+        </div>
+      </div>
+
+      <h3>johnson(graph)</h3>
+      <p>Returns all-pairs distances and predecessors, just like Floyd-Warshall.</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">python</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="language-python">import logarithma as lg
+import networkx as nx
+
+# ── Sparse graph with negative edges ──────────────────────────
+G = nx.DiGraph()
+G.add_edge('A', 'B', weight=4)
+G.add_edge('A', 'C', weight=2)
+G.add_edge('B', 'C', weight=-3)   # negative edge
+G.add_edge('C', 'D', weight=1)
+G.add_edge('D', 'B', weight=2)
+
+result = lg.johnson(G)
+
+# A→C: direct=2, via B=4+(-3)=1 → shortest is 1
+print(result['distances']['A']['C'])   # 1.0
+
+# All-pairs
+for src in G.nodes():
+    for tgt in G.nodes():
+        d = result['distances'][src][tgt]
+        print(f"  {src}→{tgt}: {d}")
+
+# ── Negative cycle detection ──────────────────────────────────
+from logarithma import NegativeCycleError
+
+G2 = nx.DiGraph()
+G2.add_edge('X', 'Y', weight=-1)
+G2.add_edge('Y', 'X', weight=-1)   # 2-node negative cycle
+
+try:
+    lg.johnson(G2)
+except NegativeCycleError:
+    print("Negative cycle detected!")</code></pre>
+      </div>
+
+      <h3>johnson_path(graph, source, target)</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">python</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code class="language-python">path = lg.johnson_path(G, 'A', 'D')
+print(path)   # ['A', 'B', 'C', 'D']</code></pre>
+      </div>
+
+      <h3>Floyd-Warshall vs Johnson — When to pick which?</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th>Floyd-Warshall</th>
+              <th>Johnson's</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Time</strong></td>
+              <td><code>O(V³)</code></td>
+              <td><code>O(V² log V + VE)</code></td>
+            </tr>
+            <tr>
+              <td><strong>Best for</strong></td>
+              <td>Dense graphs (E ≈ V²)</td>
+              <td>Sparse graphs (E ≪ V²)</td>
+            </tr>
+            <tr>
+              <td><strong>Negative weights</strong></td>
+              <td>Yes (detects cycles)</td>
+              <td>Yes (detects cycles)</td>
+            </tr>
+            <tr>
+              <td><strong>Space</strong></td>
+              <td><code>O(V²)</code></td>
+              <td><code>O(V²)</code></td>
+            </tr>
+            <tr>
+              <td><strong>Simpler code</strong></td>
+              <td>Yes (3 nested loops)</td>
+              <td>No (BF + V×Dijkstra)</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </section>
 
@@ -1171,6 +1500,20 @@ G3 = from_edge_list(edges)</code></pre>
               <td>Large point-to-point queries</td>
             </tr>
             <tr>
+              <td><strong>Floyd-Warshall</strong></td>
+              <td><code>O(V³)</code></td>
+              <td><code>O(V²)</code></td>
+              <td>✓</td>
+              <td>All-pairs SP — dense graphs, distance matrices</td>
+            </tr>
+            <tr>
+              <td><strong>Johnson's</strong></td>
+              <td><code>O(V² log V + VE)</code></td>
+              <td><code>O(V²)</code></td>
+              <td>✓</td>
+              <td>All-pairs SP — sparse graphs with negative weights</td>
+            </tr>
+            <tr>
               <td><strong>BFS</strong></td>
               <td><code>O(V + E)</code></td>
               <td><code>O(V)</code></td>
@@ -1259,7 +1602,10 @@ G3 = from_edge_list(edges)</code></pre>
               <li>Pure-Python optimizations: node ID integer mapping, <code>repr()</code> eliminated (~11% runtime)</li>
               <li>Fallback: pure Python when Cython not compiled</li>
               <li>5–7× speedup over v0.5.0 (n=1000: 129× → 26× vs Dijkstra)</li>
-              <li>281 unit tests — all passing</li>
+              <li><strong>Floyd-Warshall</strong> — O(V³) all-pairs shortest paths, negative weights, cycle detection</li>
+              <li><strong>Johnson's algorithm</strong> — O(V² log V + VE) all-pairs SP for sparse graphs</li>
+              <li>"When to use" guidance added for all algorithms</li>
+              <li>339 unit tests — all passing</li>
             </ul>
           </div>
         </div>

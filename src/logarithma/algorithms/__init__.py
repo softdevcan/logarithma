@@ -6,10 +6,11 @@ Graph algorithms collection including shortest paths,
 traversal algorithms, MST, network flow, and graph properties.
 
 Modules:
-    shortest_path   — Dijkstra, A*, Bellman-Ford, Bidirectional Dijkstra, Breaking Barrier SSSP
-    traversal       — BFS, DFS, cycle detection
-    mst             — Kruskal, Prim
-    network_flow    — Edmonds-Karp max flow
+    shortest_path    — Dijkstra, A*, Bellman-Ford, Bidirectional Dijkstra,
+                       Breaking Barrier SSSP, Floyd-Warshall, Johnson's
+    traversal        — BFS, DFS, cycle detection
+    mst              — Kruskal, Prim
+    network_flow     — Edmonds-Karp max flow
     graph_properties — Tarjan SCC, Topological Sort
 """
 
@@ -26,6 +27,10 @@ from .shortest_path import (
     bellman_ford_path,
     bidirectional_dijkstra,
     breaking_barrier_sssp,
+    floyd_warshall,
+    floyd_warshall_path,
+    johnson,
+    johnson_path,
     # Exceptions
     GraphError,
     EmptyGraphError,
@@ -54,6 +59,11 @@ __all__ = [
     'bellman_ford_path',
     'bidirectional_dijkstra',
     'breaking_barrier_sssp',
+    # All-Pairs Shortest Path
+    'floyd_warshall',
+    'floyd_warshall_path',
+    'johnson',
+    'johnson_path',
     # Traversal
     'bfs',
     'bfs_path',

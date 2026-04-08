@@ -99,6 +99,30 @@ print(result['distance'])
 print(result['path'])
 ```
 
+**Floyd-Warshall** — `O(V³)`, all-pairs shortest paths, negative weights
+
+```python
+result = lg.floyd_warshall(G)
+print(result['distances']['A']['D'])   # shortest distance A→D
+
+path = lg.floyd_warshall_path(G, 'A', 'D')
+print(path)   # ['A', 'C', 'D']
+```
+
+> **When to use:** All-pairs distances on dense graphs (E ≈ V²). Graph diameter, transitive closure, distance matrices.
+
+**Johnson's** — `O(V² log V + VE)`, all-pairs shortest paths for sparse graphs
+
+```python
+result = lg.johnson(G)
+print(result['distances']['A']['D'])
+
+path = lg.johnson_path(G, 'A', 'D')
+print(path)   # ['A', 'C', 'D']
+```
+
+> **When to use:** All-pairs distances on sparse graphs (E ≪ V²), especially with negative weights. Faster than Floyd-Warshall when the graph is sparse.
+
 **Breaking the Sorting Barrier SSSP** — `O(m log²/³ n)`, directed graphs, non-negative weights
 
 The first Python implementation of Duan, Mao, Mao, Shu, Yin (2025) — arXiv:2504.17033v2. Breaks Dijkstra's classical Ω(n log n) sorting barrier for sparse directed graphs. Optional Cython acceleration available in v0.6.0.
@@ -298,6 +322,8 @@ All exceptions are subclasses of both `GraphError` and `ValueError`, so existing
 | A\* | `O(b^d)` practical | heuristic-guided |
 | Bellman-Ford | `O(V · E)` | negative weights, cycle detection |
 | Bidirectional Dijkstra | `O(E + V log V)` ~2× faster | point-to-point |
+| Floyd-Warshall | `O(V³)` | all-pairs SP, dense graphs, negative weights |
+| Johnson's | `O(V² log V + VE)` | all-pairs SP, sparse graphs, negative weights |
 | **Breaking Barrier SSSP** | **`O(m log²/³ n)`** | **directed, breaks sorting barrier** |
 | BFS / DFS | `O(V + E)` | traversal |
 | Kruskal MST | `O(E log E)` | undirected, spanning forest |
